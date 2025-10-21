@@ -356,19 +356,40 @@ function renderSchedules() {
   const data = schedules[year] || {};
   const cont = document.getElementById("schedulesContainer");
   cont.innerHTML = "";
+
   if (Object.keys(data).length === 0) {
     cont.innerHTML = "<p>No schedules yet.</p>";
     return;
   }
+
+  // 🗓 Helper to interpret and sort by date (and time if possible)
+  const parseDate = (dateStr, timeStr = "") => {
+    const full = `${dateStr} ${year} ${timeStr}`.trim();
+    const d = new Date(full);
+    return isNaN(d) ? new Date(0) : d;
+  };
+
   Object.keys(data).forEach(team => {
     const div = document.createElement("div");
     div.className = "team-schedule";
     div.innerHTML = `<h3>${team}</h3>`;
-    data[team].forEach((g, i) => {
-      div.innerHTML += `<p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
-        ${isAdmin ? `<button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
-        <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>` : ""}</p>`;
+
+    // 🔢 Sort that team’s schedule by date, then time
+    const sortedGames = [...data[team]].sort((a, b) => {
+      const da = parseDate(a.date, a.time);
+      const db = parseDate(b.date, b.time);
+      return da - db;
     });
+
+    sortedGames.forEach((g, i) => {
+      div.innerHTML += `
+        <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
+        ${isAdmin ? `
+          <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
+          <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>
+        ` : ""}</p>`;
+    });
+
     cont.appendChild(div);
   });
 }
@@ -476,3 +497,4 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
