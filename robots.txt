@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://yourusername.github.io/flint-cup/sitemap.xml
