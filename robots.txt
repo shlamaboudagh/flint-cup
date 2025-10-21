@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://yourusername.github.io/flint-cup/sitemap.xml
+Sitemap: https://shlamaboudagh.github.io/flint-cup/sitemap.xml
