@@ -6,13 +6,14 @@ import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/1
 
 // 🔧 Your Firebase Configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
+  apiKey: "AIzaSyDJF0E9uN3rAnT5i6p1ZpIvR4h8iWSr-I0",
   authDomain: "flintcup.firebaseapp.com",
   databaseURL: "https://flintcup-default-rtdb.firebaseio.com",
   projectId: "flintcup",
-  storageBucket: "flintcup.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE"
+  storageBucket: "flintcup.firebasestorage.app",
+  messagingSenderId: "343075750510",
+  appId: "1:343075750510:web:26d4b383de5e735846dc7f",
+  measurementId: "G-JWWEPEH1BC"
 };
 
 // Initialize Firebase
@@ -246,3 +247,4 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
