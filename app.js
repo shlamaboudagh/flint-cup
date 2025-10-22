@@ -107,26 +107,69 @@ window.addEventListener("DOMContentLoaded", () => {
   function currentYear() { return yearDropdown.value; }
 
   // =============== FIREBASE SYNC ===================
-  async function loadFromFirebase() {
-    try {
-      const snapshot = await get(ref(db, "flintcup"));
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        seasons = data.seasons || {};
-        matches = data.matches || {};
-        players = data.players || {};
-        schedules = data.schedules || {};
-        localStorage.setItem("seasons", JSON.stringify(seasons));
-        localStorage.setItem("matches", JSON.stringify(matches));
-        localStorage.setItem("players", JSON.stringify(players));
-        localStorage.setItem("schedules", JSON.stringify(schedules));
-      }
-    } catch (err) {
-      console.error("⚠️ Firebase load failed:", err);
+  // ✅ Fixed Firebase Loader
+async function loadFromFirebase() {
+  try {
+    const snapshot = await get(ref(db, "flintcup"));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      seasons = data.seasons || {};
+      matches = data.matches || {};
+      players = data.players || {};
+      schedules = data.schedules || {};
+
+      // Sync with local storage
+      localStorage.setItem("seasons", JSON.stringify(seasons));
+      localStorage.setItem("matches", JSON.stringify(matches));
+      localStorage.setItem("players", JSON.stringify(players));
+      localStorage.setItem("schedules", JSON.stringify(schedules));
     }
+  } catch (err) {
+    console.error("⚠️ Firebase load failed:", err);
+  }
+}
+
+// ✅ Fixed Full Render
+async function renderEverything() {
+  await loadFromFirebase();
+
+  // Overview and core sections first
+  renderOverview();
+
+  // Prevent crashes if no season data yet
+  const year = currentYear();
+  if (!seasons[year]) {
+    document.getElementById("groupA-table").innerHTML = "";
+    document.getElementById("groupB-table").innerHTML = "";
+    document.querySelector(".match-list").innerHTML = "<p>No matches yet.</p>";
+    document.querySelector(".player-list").innerHTML = "<p>No players yet.</p>";
+    document.getElementById("schedulesContainer").innerHTML = "<p>No schedules yet.</p>";
+    return;
   }
 
-  function saveToFirebase() {
+  // Core tables
+  renderMatches();
+  renderStandings();
+  renderSchedules();
+
+  // Player systems
+  renderPlayers();
+  renderStats();
+  renderAllTime();
+
+  // Re-bind dynamic buttons
+  safeBindPlayerButtons();
+
+  // ✅ Refresh admin-only buttons visibility
+  if (isAdmin) {
+    document.querySelectorAll(".admin-only").forEach(b => b.classList.remove("hidden"));
+  } else {
+    document.querySelectorAll(".admin-only").forEach(b => b.classList.add("hidden"));
+  }
+}
+
+yearDropdown.onchange = renderEverything;
+window.addEventListener("load", renderEverything);
     set(ref(db, "flintcup"), { seasons, matches, players, schedules })
       .catch(err => console.error("⚠️ Firebase save failed:", err));
   }
@@ -402,7 +445,8 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   yearDropdown.onchange = renderEverything;
-  renderEverything();
+window.addEventListener("load", renderEverything);
 });
+
 
 
