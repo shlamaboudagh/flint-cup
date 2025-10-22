@@ -424,18 +424,20 @@ function renderPlayoffs() {
 
   document.getElementById("generatePlayoffsBtn").classList.add("hidden");
 
-  const { semi1, semi2, final } = data;
-  div.innerHTML = `
-    <h3>Semifinals</h3>
-    <p>${semi1.teamA} vs ${semi1.teamB} ${semi1.scoreA != null ? `— ${semi1.scoreA}-${semi1.scoreB}` : ""}</p>
-    <p>${semi2.teamA} vs ${semi2.teamB} ${semi2.scoreA != null ? `— ${semi2.scoreA}-${semi2.scoreB}` : ""}</p>
+const year = currentYear();
+const data = seasons[year]?.playoffs || {};
+const { semi1, semi2, final } = data;
 
-    ${final ? `
-      <h3>Final</h3>
-      <p>${final.teamA} vs ${final.teamB} ${final.scoreA != null ? `— ${final.scoreA}-${final.scoreB}` : ""}</p>
-      ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
-    ` : ""}
-  `;
+div.innerHTML = `
+  <h3>Semifinals</h3>
+  <p>${semi1.teamA} vs ${semi1.teamB} ${semi1.scoreA != null ? `– ${semi1.scoreA}-${semi1.scoreB}` : ""}</p>
+  <p>${semi2.teamA} vs ${semi2.teamB} ${semi2.scoreA != null ? `– ${semi2.scoreA}-${semi2.scoreB}` : ""}</p>
+  ${final ? `
+  <h3>Final</h3>
+  <p>${final.teamA} vs ${final.teamB} ${final.scoreA != null ? `– ${final.scoreA}-${final.scoreB}` : ""}</p>
+  ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
+  ` : ""}
+`;
 
   if (isAdmin) {
     document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
@@ -900,6 +902,7 @@ if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
