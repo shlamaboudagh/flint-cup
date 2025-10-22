@@ -145,10 +145,18 @@ function renderOverview() {
   } else {
     // ✅ Show groups & winner to everyone
     overviewContent.innerHTML = `
-      <p>🏅 <strong>Group A:</strong> ${data.groupA.join(", ")}</p>
-      <p>⚽ <strong>Group B:</strong> ${data.groupB.join(", ")}</p>
-      ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
-    `;
+  <div class="groups">
+    <div class="group">
+      <h3>Group A</h3>
+      <ul>${(data.groupA || []).map(t => `<li>${t}</li>`).join("") || "<li>None</li>"}</ul>
+    </div>
+    <div class="group">
+      <h3>Group B</h3>
+      <ul>${(data.groupB || []).map(t => `<li>${t}</li>`).join("") || "<li>None</li>"}</ul>
+    </div>
+  </div>
+  ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
+`;
   }
 
   // ✅ Only toggle buttons for admins
@@ -254,7 +262,9 @@ function addMatch() {
   matches[year].push({ teamA, teamB, scoreA, scoreB });
   localStorage.setItem("matches", JSON.stringify(matches));
   saveToFirebase();
-  renderMatches(); renderStandings();
+  renderMatches();
+  renderStandings();
+  saveToFirebase();
 }
 
 function editMatch(i) {
@@ -384,46 +394,6 @@ function renderPlayoffs() {
     return;
   }
 
-  document.getElementById("generatePlayoffsBtn").classList.add("hidden");
-
-  const { semi1, semi2, final } = data;
-
-  const semiLine = (s, label) => `
-  ${label}: ${s.teamA}
-  ${s.scoreA !== null && s.scoreB !== null ? `${s.scoreA}-${s.scoreB}` : ""}
-  ${s.teamB}
-`;
-
-  div.innerHTML = `
-    <h3>Semifinals</h3>
-    <p>${semiLine(semi1, "SF1")} ${isAdmin && (semi1.scoreA == null || semi1.scoreB == null) ? `<button id="semi1ScoreBtn">Enter SF1 Score</button>` : ""}</p>
-    <p>${semiLine(semi2, "SF2")} ${isAdmin && (semi2.scoreA == null || semi2.scoreB == null) ? `<button id="semi2ScoreBtn">Enter SF2 Score</button>` : ""}</p>
-
-    ${final ? `
-  <h3>Final</h3>
-  <p>
-    ${final.teamA}
-    ${final.scoreA !== null && final.scoreB !== null ? `${final.scoreA}-${final.scoreB}` : ""}
-    ${final.teamB}
-  </p>
-  ${isAdmin && (final.scoreA === null || final.scoreB === null)
-    ? `<button id="finalScoreBtn">Enter Final Score</button>`
-    : ""}
-  ${seasons[year].winner
-    ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>`
-    : ""}
-  <div id="finalPlaceholder"></div>
-` : ""}
-  `;
-
-  // Show “Set Final Winner” only when a final exists but you still want to set winner manually
-  const setBtn = document.getElementById("setFinalWinnerBtn");
-  if (isAdmin && data.final) setBtn.classList.remove("hidden");
-  else setBtn.classList.add("hidden");
-}
-
-  document.getElementById("generatePlayoffsBtn").classList.add("hidden");
-
 const year = currentYear();
 const data = seasons[year]?.playoffs || {};
 const { semi1, semi2, final } = data;
@@ -515,6 +485,10 @@ function addPlayer() {
   renderAllTime();
 
   console.log(`✅ Added player: ${name} (${team}) — G:${goals} A:${assists} Y:${yellow} R:${red}`);
+  if (isAdmin) {
+  document.getElementById("addPlayerBtn").classList.remove("hidden");
+}
+renderStats();
 }
 
 function editPlayer(i) {
@@ -729,8 +703,19 @@ function addGame() {
 
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
-  renderSchedules();
-  alert(`✅ Game added for both ${teamA} and ${teamB}`);
+  
+  // Sort schedules by date for each team
+for (const t in schedules[year]) {
+  schedules[year][t].sort((a, b) => {
+    const da = new Date(a.date + " " + year);
+    const db = new Date(b.date + " " + year);
+    return da - db;
+  });
+}
+localStorage.setItem("schedules", JSON.stringify(schedules));
+saveToFirebase();
+renderSchedules();
+alert(`✅ Game added for both ${teamA} and ${teamB}, sorted by date`);
 }
 
 document.getElementById("addGameBtn").onclick = addGame;
@@ -775,6 +760,7 @@ function renderAllTime() {
     .filter(([_, s]) => s.winner)
     .map(([year, s]) => `<p><strong>${year}:</strong> ${s.winner}</p>`)
     .join("") || "<p>No winners recorded yet.</p>";
+  renderStats();
   list.innerHTML = `
     <div class="leaderboard">
       <h3>🏆 All-Time Flint Cup Records</h3>
@@ -921,13 +907,27 @@ async function renderEverything() {
 
 // 🌀 Re-render when year changes
 yearDropdown.addEventListener("change", () => {
-  localStorage.setItem("selectedYear", yearDropdown.value);
+  const y = yearDropdown.value;
+  localStorage.setItem("selectedYear", y);
+
+  // 🧹 Initialize if not yet made
+  if (!seasons[y]) seasons[y] = {};
+  if (!matches[y]) matches[y] = [];
+  if (!players[y]) players[y] = [];
+  if (!schedules[y]) schedules[y] = {};
+
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  localStorage.setItem("matches", JSON.stringify(matches));
+  localStorage.setItem("players", JSON.stringify(players));
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+
   renderEverything();
 });
 
 // 🧠 Attach ALL button handlers once page loads
 window.addEventListener("load", async () => {
   await renderEverything();
+  renderMatches();
 
   // ===== ADMIN CONTROLS =====
   attachAdminButtons();
@@ -966,7 +966,9 @@ window.addEventListener("load", async () => {
   if (setWinnerBtn) setWinnerBtn.onclick = setFinalWinner;
 
   console.log("✅ All buttons connected successfully.");
+  renderEverything();
 });
+
 
 
 
