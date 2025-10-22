@@ -436,17 +436,9 @@ window.addEventListener("load", renderEverything);
   };
 
   // =============== INITIAL RENDER ===================
-  async function renderEverything() {
-    await loadFromFirebase();
-    renderOverview();
-    renderMatches();
-    renderStandings();
-    renderSchedules();
-  }
-
   yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
-});
+
 
 
 
