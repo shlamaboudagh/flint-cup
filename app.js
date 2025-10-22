@@ -485,12 +485,6 @@ function delGame(team, i) {
   alert(`🗑 Deleted game between ${team} and ${opponent} for both teams`);
 }
 
-  localStorage.setItem("schedules", JSON.stringify(schedules));
-  saveToFirebase();
-  renderSchedules();
-  alert(`🗑 Deleted game between ${team} and ${g.opponent}`);
-}
-
 // 🏟 Add Game (adds to both team schedules)
 function addGame() {
   const year = currentYear();
@@ -586,6 +580,7 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
 
