@@ -265,6 +265,108 @@ function renderStandings() {
   });
 }
 
+
+
+// =============== STATS ===================
+function renderStats() {
+  const statsDiv = document.querySelector(".stats-board");
+  const year = currentYear();
+  const arr = players[year] || [];
+
+  if (!arr.length) {
+    statsDiv.innerHTML = "<p>No player stats yet.</p>";
+    return;
+  }
+
+  const getTop = key => {
+    const max = Math.max(...arr.map(p => p[key] || 0));
+    const leaders = arr.filter(p => p[key] === max && max > 0);
+    return { max, leaders };
+  };
+
+  const build = (title, d, emoji) =>
+    d.max ? `${emoji} ${title}: <strong>${d.leaders.map(p => p.name).join(", ")}</strong> — ${d.max}`
+          : `${emoji} ${title}: No record yet.`;
+
+  statsDiv.innerHTML = `
+    <div class="leaderboard">
+      <h3>🏆 Season Leaders (${year})</h3>
+      <p>${build("Top Scorer", getTop("goals"), "⚽")}</p>
+      <p>${build("Top Assister", getTop("assists"), "🎯")}</p>
+      <p>${build("Most Yellow Cards", getTop("yellow"), "🟨")}</p>
+      <p>${build("Most Red Cards", getTop("red"), "🟥")}</p>
+    </div>
+  `;
+}
+
+// =============== PLAYERS ===================
+function renderPlayers() {
+  const list = document.querySelector(".player-list");
+  const year = currentYear();
+  const arr = players[year] || [];
+
+  list.innerHTML = arr.map((p, i) => `
+    <p>
+      <strong>${p.name}</strong> (${p.team}) — ⚽ ${p.goals} | 🎯 ${p.assists} | 🟨 ${p.yellow} | 🟥 ${p.red}
+      ${isAdmin ? `
+        <button class="editPlayerBtn" data-i="${i}">✏️</button>
+        <button class="delPlayerBtn" data-i="${i}">❌</button>
+      ` : ""}
+    </p>
+  `).join("") || "<p>No players yet.</p>";
+}
+
+// ➕ Add Player
+document.getElementById("addPlayerBtn").onclick = () => {
+  const year = currentYear();
+  const name = prompt("Player name:");
+  const team = prompt("Team name:");
+  const goals = +prompt("Goals:") || 0;
+  const assists = +prompt("Assists:") || 0;
+  const yellow = +prompt("Yellow cards:") || 0;
+  const red = +prompt("Red cards:") || 0;
+  if (!name || !team) return alert("Name and team required.");
+
+  players[year] = players[year] || [];
+  players[year].push({ name, team, goals, assists, yellow, red });
+  saveToFirebase();
+  renderPlayers();
+  renderStats();
+  renderAllTime();
+};
+
+// ✏️ Edit or ❌ Delete Player
+document.querySelector(".player-list").onclick = e => {
+  const btn = e.target;
+  const year = currentYear();
+
+  if (btn.classList.contains("editPlayerBtn")) {
+    const i = btn.dataset.i;
+    const p = players[year][i];
+    p.name = prompt("Name:", p.name);
+    p.team = prompt("Team:", p.team);
+    p.goals = +prompt("Goals:", p.goals);
+    p.assists = +prompt("Assists:", p.assists);
+    p.yellow = +prompt("Yellow cards:", p.yellow);
+    p.red = +prompt("Red cards:", p.red);
+    saveToFirebase();
+    renderPlayers();
+    renderStats();
+    renderAllTime();
+  }
+
+  if (btn.classList.contains("delPlayerBtn")) {
+    const i = btn.dataset.i;
+    if (confirm("Delete this player?")) {
+      players[year].splice(i, 1);
+      saveToFirebase();
+      renderPlayers();
+      renderStats();
+      renderAllTime();
+    }
+  }
+};
+
 // =============== SCHEDULES ===================
 function parseDate(str, year) {
   const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
@@ -356,38 +458,6 @@ document.getElementById("schedulesContainer").onclick = e => {
   if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
 };
 
-// =============== STATS ===================
-function renderStats() {
-  const statsDiv = document.querySelector(".stats-board");
-  const year = currentYear();
-  const arr = players[year] || [];
-
-  if (!arr.length) {
-    statsDiv.innerHTML = "<p>No player stats yet.</p>";
-    return;
-  }
-
-  const getTop = key => {
-    const max = Math.max(...arr.map(p => p[key] || 0));
-    const leaders = arr.filter(p => p[key] === max && max > 0);
-    return { max, leaders };
-  };
-
-  const build = (title, d, emoji) =>
-    d.max ? `${emoji} ${title}: <strong>${d.leaders.map(p => p.name).join(", ")}</strong> — ${d.max}`
-          : `${emoji} ${title}: No record yet.`;
-
-  statsDiv.innerHTML = `
-    <div class="leaderboard">
-      <h3>🏆 Season Leaders (${year})</h3>
-      <p>${build("Top Scorer", getTop("goals"), "⚽")}</p>
-      <p>${build("Top Assister", getTop("assists"), "🎯")}</p>
-      <p>${build("Most Yellow Cards", getTop("yellow"), "🟨")}</p>
-      <p>${build("Most Red Cards", getTop("red"), "🟥")}</p>
-    </div>
-  `;
-}
-
 // =============== ALL-TIME ===================
 function renderAllTime() {
   const list = document.querySelector(".alltime-list");
@@ -443,74 +513,6 @@ function renderAllTime() {
   `;
 }
 
-// =============== PLAYERS ===================
-function renderPlayers() {
-  const list = document.querySelector(".player-list");
-  const year = currentYear();
-  const arr = players[year] || [];
-
-  list.innerHTML = arr.map((p, i) => `
-    <p>
-      <strong>${p.name}</strong> (${p.team}) — ⚽ ${p.goals} | 🎯 ${p.assists} | 🟨 ${p.yellow} | 🟥 ${p.red}
-      ${isAdmin ? `
-        <button class="editPlayerBtn" data-i="${i}">✏️</button>
-        <button class="delPlayerBtn" data-i="${i}">❌</button>
-      ` : ""}
-    </p>
-  `).join("") || "<p>No players yet.</p>";
-}
-
-// ➕ Add Player
-document.getElementById("addPlayerBtn").onclick = () => {
-  const year = currentYear();
-  const name = prompt("Player name:");
-  const team = prompt("Team name:");
-  const goals = +prompt("Goals:") || 0;
-  const assists = +prompt("Assists:") || 0;
-  const yellow = +prompt("Yellow cards:") || 0;
-  const red = +prompt("Red cards:") || 0;
-  if (!name || !team) return alert("Name and team required.");
-
-  players[year] = players[year] || [];
-  players[year].push({ name, team, goals, assists, yellow, red });
-  saveToFirebase();
-  renderPlayers();
-  renderStats();
-  renderAllTime();
-};
-
-// ✏️ Edit or ❌ Delete Player
-document.querySelector(".player-list").onclick = e => {
-  const btn = e.target;
-  const year = currentYear();
-
-  if (btn.classList.contains("editPlayerBtn")) {
-    const i = btn.dataset.i;
-    const p = players[year][i];
-    p.name = prompt("Name:", p.name);
-    p.team = prompt("Team:", p.team);
-    p.goals = +prompt("Goals:", p.goals);
-    p.assists = +prompt("Assists:", p.assists);
-    p.yellow = +prompt("Yellow cards:", p.yellow);
-    p.red = +prompt("Red cards:", p.red);
-    saveToFirebase();
-    renderPlayers();
-    renderStats();
-    renderAllTime();
-  }
-
-  if (btn.classList.contains("delPlayerBtn")) {
-    const i = btn.dataset.i;
-    if (confirm("Delete this player?")) {
-      players[year].splice(i, 1);
-      saveToFirebase();
-      renderPlayers();
-      renderStats();
-      renderAllTime();
-    }
-  }
-};
-
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   await loadFromFirebase();
@@ -522,6 +524,7 @@ async function renderEverything() {
 
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
 
