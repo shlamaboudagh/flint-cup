@@ -485,23 +485,6 @@ document.getElementById("schedulesContainer").onclick = e => {
   if (e.target.classList.contains("delGameBtn")) delGame(e.target.dataset.team, e.target.dataset.i);
 };
 
-// ✅ Schedules Button Event Listeners
-const addGameBtn = document.getElementById("addGameBtn");
-const schedulesContainer = document.getElementById("schedulesContainer");
-
-// Edit/Delete buttons inside schedule list
-if (schedulesContainer) {
-  schedulesContainer.addEventListener("click", e => {
-    const btn = e.target;
-    if (btn.classList.contains("editGameBtn")) {
-      editGame(btn.dataset.team, btn.dataset.i);
-    }
-    if (btn.classList.contains("delGameBtn")) {
-      delGame(btn.dataset.team, btn.dataset.i);
-    }
-  });
-}
-
 // =============== ALL-TIME ===================
 function renderAllTime() {
   const list = document.querySelector(".alltime-list");
@@ -565,6 +548,7 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
 
