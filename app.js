@@ -86,20 +86,22 @@ document.getElementById("admin-login").addEventListener("click", () => {
 });
 
 // =============== TAB NAVIGATION ===================
-const tabs = document.querySelectorAll(".tab-button");
-const sections = document.querySelectorAll(".tab-content");
-tabs.forEach(tab => {
-  tab.addEventListener("click", () => {
-    tabs.forEach(t => t.classList.remove("active"));
-    sections.forEach(s => s.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById(tab.dataset.tab).classList.add("active");
+document.addEventListener("DOMContentLoaded", () => {
+  const tabs = document.querySelectorAll(".tab-button");
+  const sections = document.querySelectorAll(".tab-content");
 
-    // Render tab-specific content
-    if (tab.dataset.tab === "players") renderPlayers();
-    if (tab.dataset.tab === "stats") renderStats();
-    if (tab.dataset.tab === "schedules") renderSchedules();
-    if (tab.dataset.tab === "alltime") renderAllTime();
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      sections.forEach(s => s.classList.remove("active"));
+      tab.classList.add("active");
+      document.getElementById(tab.dataset.tab).classList.add("active");
+
+      if (tab.dataset.tab === "players") renderPlayers();
+      if (tab.dataset.tab === "stats") renderStats();
+      if (tab.dataset.tab === "schedules") renderSchedules();
+      if (tab.dataset.tab === "alltime") renderAllTime();
+    });
   });
 });
 
@@ -584,5 +586,6 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
