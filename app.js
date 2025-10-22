@@ -1,4 +1,4 @@
-// ================= FLINT CUP (Firebase + Local Storage Sync) ===================
+// ================= FLINT CUP (Full Firebase + Local Storage Sync) ===================
 
 // ✅ Use ES module imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -94,6 +94,12 @@ tabs.forEach(tab => {
     sections.forEach(s => s.classList.remove("active"));
     tab.classList.add("active");
     document.getElementById(tab.dataset.tab).classList.add("active");
+
+    // Render tab-specific content
+    if (tab.dataset.tab === "players") renderPlayers();
+    if (tab.dataset.tab === "stats") renderStats();
+    if (tab.dataset.tab === "schedules") renderSchedules();
+    if (tab.dataset.tab === "alltime") renderAllTime();
   });
 });
 
@@ -258,6 +264,262 @@ function renderStandings() {
   document.getElementById("groupB-table").innerHTML = render(B);
 }
 
+// =============== PLAYERS ===================
+function renderPlayers() {
+  const list = document.querySelector(".player-list");
+  const year = currentYear();
+  const arr = players[year] || [];
+  list.innerHTML = arr.map((p,i)=>`
+    <p><strong>${p.name}</strong> (${p.team}) — ⚽ ${p.goals} | 🎯 ${p.assists} | 🟨 ${p.yellow} | 🟥 ${p.red}
+    ${isAdmin ? `<button class="editPlayerBtn" data-i="${i}">✏️</button>
+    <button class="delPlayerBtn" data-i="${i}">❌</button>` : ""}</p>
+  `).join("") || "<p>No players yet.</p>";
+}
+
+function addPlayer() {
+  const year = currentYear();
+  const name = prompt("Name:");
+  const team = prompt("Team:");
+  const goals = +prompt("Goals:") || 0;
+  const assists = +prompt("Assists:") || 0;
+  const yellow = +prompt("Yellow cards:") || 0;
+  const red = +prompt("Red cards:") || 0;
+  if (!name || !team) return alert("Name & team required.");
+  players[year] = players[year] || [];
+  players[year].push({ name, team, goals, assists, yellow, red });
+  localStorage.setItem("players", JSON.stringify(players));
+  saveToFirebase();
+  renderPlayers(); renderStats();
+}
+
+function editPlayer(i) {
+  const year = currentYear();
+  const p = players[year][i];
+  p.name = prompt("Name:", p.name);
+  p.team = prompt("Team:", p.team);
+  p.goals = +prompt("Goals:", p.goals);
+  p.assists = +prompt("Assists:", p.assists);
+  p.yellow = +prompt("Yellows:", p.yellow);
+  p.red = +prompt("Reds:", p.red);
+  localStorage.setItem("players", JSON.stringify(players));
+  saveToFirebase();
+  renderPlayers(); renderStats();
+}
+
+function delPlayer(i) {
+  const year = currentYear();
+  if (!confirm("Delete player?")) return;
+  players[year].splice(i,1);
+  localStorage.setItem("players", JSON.stringify(players));
+  saveToFirebase();
+  renderPlayers(); renderStats();
+}
+
+document.getElementById("addPlayerBtn").onclick = addPlayer;
+document.querySelector(".player-list").onclick = e => {
+  if (e.target.classList.contains("editPlayerBtn")) editPlayer(e.target.dataset.i);
+  if (e.target.classList.contains("delPlayerBtn")) delPlayer(e.target.dataset.i);
+};
+
+// =============== STATS ===================
+function renderStats() {
+  const statsDiv = document.querySelector(".stats-board");
+  const year = currentYear();
+  const arr = players[year] || [];
+  if (!arr.length) {
+    statsDiv.innerHTML = "<p>No player stats yet.</p>";
+    return;
+  }
+  const getTop = key => {
+    const max = Math.max(...arr.map(p => p[key] || 0));
+    const leaders = arr.filter(p => p[key] === max && max > 0);
+    return { max, leaders };
+  };
+  const build = (title, d, emoji) =>
+    d.max ? `${emoji} ${title}: <strong>${d.leaders.map(p=>p.name).join(", ")}</strong> — ${d.max}`
+          : `${emoji} ${title}: No record yet.`;
+
+  statsDiv.innerHTML = `
+    <div class="leaderboard">
+      <h3>🏆 Season Leaders (${year})</h3>
+      <p>${build("Top Scorer", getTop("goals"), "⚽")}</p>
+      <p>${build("Top Assister", getTop("assists"), "🎯")}</p>
+      <p>${build("Most Yellow Cards", getTop("yellow"), "🟨")}</p>
+      <p>${build("Most Red Cards", getTop("red"), "🟥")}</p>
+    </div>
+  `;
+}
+
+// =============== SCHEDULES ===================
+// 🏆 Render Schedules (auto-sorted)
+function renderSchedules() {
+  const year = currentYear();
+  const data = schedules[year] || {};
+  const cont = document.getElementById("schedulesContainer");
+  cont.innerHTML = "";
+
+  if (Object.keys(data).length === 0) {
+    cont.innerHTML = "<p>No schedules yet.</p>";
+    return;
+  }
+
+  // 🗓 Parse date strings like “March 14th” or “Mar 14”
+  const parseDate = (str, year) => {
+    const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
+    const full = `${clean} ${year}`;
+    const d = new Date(full);
+    return isNaN(d) ? new Date(0) : d;
+  };
+
+  Object.keys(data).forEach(team => {
+    const div = document.createElement("div");
+    div.className = "team-schedule";
+    div.innerHTML = `<h3>${team}</h3>`;
+
+    // Sort each team’s games chronologically
+    const sorted = [...data[team]].sort(
+      (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
+    );
+
+    sorted.forEach((g, i) => {
+      div.innerHTML += `
+        <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
+        ${isAdmin ? `
+          <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
+          <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>
+        ` : ""}</p>`;
+    });
+
+    cont.appendChild(div);
+  });
+}
+
+// 🏟 Add Game (adds to both team schedules)
+function addGame() {
+  const year = currentYear();
+  const teamA = prompt("Home team:");
+  const teamB = prompt("Away team:");
+  const date = prompt("Date (e.g., March 14th):");
+  const time = prompt("Time (e.g., 5:00 PM):");
+
+  if (!teamA || !teamB || !date || !time) return alert("All fields required.");
+
+  schedules[year] = schedules[year] || {};
+
+  // Add to Team A (home)
+  schedules[year][teamA] = schedules[year][teamA] || [];
+  schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
+
+  // Add to Team B (away)
+  schedules[year][teamB] = schedules[year][teamB] || [];
+  schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
+
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`✅ Game added for both ${teamA} and ${teamB}`);
+}
+
+function editGame(team, i) {
+  const year = currentYear();
+  const g = schedules[year][team][i];
+  const opponent = prompt("Opponent:", g.opponent);
+  const date = prompt("Date:", g.date);
+  const time = prompt("Time:", g.time);
+  const homeaway = prompt("Home/Away:", g.homeaway);
+  schedules[year][team][i] = { opponent, date, time, homeaway };
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+}
+
+function delGame(team, i) {
+  const year = currentYear();
+  if (!confirm("Delete this game?")) return;
+  schedules[year][team].splice(i, 1);
+  if (schedules[year][team].length === 0) delete schedules[year][team];
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+}
+
+document.getElementById("addGameBtn").onclick = addGame;
+document.getElementById("schedulesContainer").onclick = e => {
+  if (e.target.classList.contains("editGameBtn")) editGame(e.target.dataset.team, e.target.dataset.i);
+  if (e.target.classList.contains("delGameBtn")) delGame(e.target.dataset.team, e.target.dataset.i);
+};
+
+// ✅ Schedules Button Event Listeners
+const addGameBtn = document.getElementById("addGameBtn");
+const schedulesContainer = document.getElementById("schedulesContainer");
+
+// Add Game button
+if (addGameBtn) {
+  addGameBtn.addEventListener("click", addGame);
+}
+
+// Edit/Delete buttons inside schedule list
+if (schedulesContainer) {
+  schedulesContainer.addEventListener("click", e => {
+    const btn = e.target;
+    if (btn.classList.contains("editGameBtn")) {
+      editGame(btn.dataset.team, btn.dataset.i);
+    }
+    if (btn.classList.contains("delGameBtn")) {
+      delGame(btn.dataset.team, btn.dataset.i);
+    }
+  });
+}
+
+// =============== ALL-TIME ===================
+function renderAllTime() {
+  const list = document.querySelector(".alltime-list");
+  list.innerHTML = "";
+  let combined = {};
+  for (const year in players) {
+    (players[year] || []).forEach(p => {
+      if (!combined[p.name]) {
+        combined[p.name] = { ...p, totalGoals: p.goals, totalAssists: p.assists, totalYellow: p.yellow, totalRed: p.red };
+      } else {
+        combined[p.name].totalGoals += p.goals;
+        combined[p.name].totalAssists += p.assists;
+        combined[p.name].totalYellow += p.yellow;
+        combined[p.name].totalRed += p.red;
+      }
+    });
+  }
+  const arr = Object.values(combined);
+  if (!arr.length) {
+    list.innerHTML = "<p>No all-time data yet.</p>";
+    return;
+  }
+  const getTop = key => {
+    const max = Math.max(...arr.map(p => p[key] || 0));
+    const leaders = arr.filter(p => p[key] === max && max > 0);
+    return { max, leaders };
+  };
+  const buildSection = (title, icon, key) => {
+    const top = getTop(key);
+    if (!top.max) return `<h4>${icon} ${title}</h4><p>No records yet.</p>`;
+    return `<h4>${icon} ${title}</h4>${top.leaders.map(p => `<p><strong>${p.name}</strong> (${p.team}) — ${top.max}</p>`).join("")}`;
+  };
+  const winners = Object.entries(seasons)
+    .filter(([_, s]) => s.winner)
+    .map(([year, s]) => `<p><strong>${year}:</strong> ${s.winner}</p>`)
+    .join("") || "<p>No winners recorded yet.</p>";
+  list.innerHTML = `
+    <div class="leaderboard">
+      <h3>🏆 All-Time Flint Cup Records</h3>
+      ${buildSection("Top Scorers", "⚽", "totalGoals")}
+      ${buildSection("Top Assisters", "🎯", "totalAssists")}
+      ${buildSection("Most Yellow Cards", "🟨", "totalYellow")}
+      ${buildSection("Most Red Cards", "🟥", "totalRed")}
+      <h3 style="margin-top:25px;">🏅 Season Winners</h3>
+      ${winners}
+    </div>
+  `;
+}
+
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   await loadFromFirebase();
@@ -265,6 +527,5 @@ async function renderEverything() {
   renderMatches();
   renderStandings();
 }
-
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
