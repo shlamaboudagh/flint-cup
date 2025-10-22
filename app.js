@@ -491,14 +491,18 @@ function renderPlayers() {
 
 function addPlayer() {
   const year = currentYear();
-  const name = prompt("Name:");
-  const team = prompt("Team:");
-  const goals = +prompt("Goals:") || 0;
-  const assists = +prompt("Assists:") || 0;
-  const yellow = +prompt("Yellow cards:") || 0;
-  const red = +prompt("Red cards:") || 0;
 
-  if (!name || !team) return alert("Name & team required.");
+  // 🧩 Step-by-step prompts with clear labels
+  const name = prompt("Player Name:");
+  if (!name) return alert("⚠️ Name required.");
+
+  const team = prompt("Team Name:");
+  if (!team) return alert("⚠️ Team required.");
+
+  const goals = +prompt("Goals scored (enter 0 if none):") || 0;
+  const assists = +prompt("Assists (enter 0 if none):") || 0;
+  const yellow = +prompt("Yellow cards (enter 0 if none):") || 0;
+  const red = +prompt("Red cards (enter 0 if none):") || 0;
 
   players[year] = players[year] || [];
   players[year].push({ name, team, goals, assists, yellow, red });
@@ -508,8 +512,9 @@ function addPlayer() {
 
   renderPlayers();
   renderStats();
-  renderAllTime();         // 👈 add this so All-Time reflects right away
-  console.log("✅ player added:", { year, name, team, goals, assists, yellow, red });
+  renderAllTime();
+
+  console.log(`✅ Added player: ${name} (${team}) — G:${goals} A:${assists} Y:${yellow} R:${red}`);
 }
 
 function editPlayer(i) {
@@ -905,5 +910,6 @@ window.addEventListener("load", async () => {
 // ✅ these two lines MUST be outside that block
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
