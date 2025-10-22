@@ -137,6 +137,7 @@ if (isAdmin) {
 }
 
 function setupNewSeason() {
+  console.log("🧩 Edit Teams button clicked"); // debug log
   const year = currentYear();
   if (seasons[year]) return alert(`${year} already exists.`);
   const groupA = [], groupB = [];
@@ -189,11 +190,6 @@ function setWinner() {
   alert(`🏆 ${winner} set as ${year} Champion!`);
   renderEverything();
 }
-
-setupSeasonBtn.onclick = setupNewSeason;
-editTeamsBtn.onclick = editTeams;
-clearSeasonBtn.onclick = clearSeason;
-setWinnerBtn.onclick = setWinner;
 
 // =============== MATCHES ===================
 function renderMatches() {
@@ -569,5 +565,10 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
+setupSeasonBtn.onclick = setupNewSeason;
+editTeamsBtn.onclick = editTeams;
+clearSeasonBtn.onclick = clearSeason;
+setWinnerBtn.onclick = setWinner;
 
 
