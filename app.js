@@ -864,21 +864,6 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
   if (e.target.id === "finalScoreBtn") enterFinalScore();
 });
 
-// =============== ADMIN BUTTON ATTACHER ===================
-function attachAdminButtons() {
-  const setupSeasonBtn = document.getElementById("setupSeasonBtn");
-  const editTeamsBtn = document.getElementById("editTeamsBtn");
-  const clearSeasonBtn = document.getElementById("clearSeasonBtn");
-  const setWinnerBtn = document.getElementById("setWinnerBtn");
-
-  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
-  if (editTeamsBtn) editTeamsBtn.onclick = editTeams;
-  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
-  if (setWinnerBtn) setWinnerBtn.onclick = setWinner;
-
-  console.log("⚙️ Admin buttons attached.");
-}
-
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
@@ -959,6 +944,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
