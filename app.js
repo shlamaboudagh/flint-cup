@@ -403,12 +403,19 @@ function addPlayer() {
   const assists = +prompt("Assists:") || 0;
   const yellow = +prompt("Yellow cards:") || 0;
   const red = +prompt("Red cards:") || 0;
+
   if (!name || !team) return alert("Name & team required.");
+
   players[year] = players[year] || [];
   players[year].push({ name, team, goals, assists, yellow, red });
+
   localStorage.setItem("players", JSON.stringify(players));
   saveToFirebase();
-  renderPlayers(); renderStats();
+
+  renderPlayers();
+  renderStats();
+  renderAllTime();         // 👈 add this so All-Time reflects right away
+  console.log("✅ player added:", { year, name, team, goals, assists, yellow, red });
 }
 
 function editPlayer(i) {
@@ -778,6 +785,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
