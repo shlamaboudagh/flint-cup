@@ -100,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tab.dataset.tab === "players") renderPlayers();
       if (tab.dataset.tab === "stats") renderStats();
       if (tab.dataset.tab === "schedules") renderSchedules();
+      if (tab.dataset.tab === "playoffs") renderPlayoffs();
       if (tab.dataset.tab === "alltime") renderAllTime();
     });
   });
@@ -289,6 +290,73 @@ function renderStandings() {
 
   document.getElementById("groupA-table").innerHTML = renderTable(A);
   document.getElementById("groupB-table").innerHTML = renderTable(B);
+}
+
+// =============== PLAYOFFS ===================
+function generatePlayoffs() {
+  const year = currentYear();
+  const { A, B } = calcStandings();
+  if (!A.length || !B.length) return alert("No standings available yet!");
+
+  // Sort both groups first
+  const sortTeams = arr => arr.sort((a, b) => b.P - a.P || (b.GF - b.GA) - (a.GF - a.GA) || b.GF - a.GF);
+  sortTeams(A);
+  sortTeams(B);
+
+  // Get top 2 from each group
+  const semi1 = { teamA: A[0].team, teamB: B[1].team, scoreA: null, scoreB: null };
+  const semi2 = { teamA: B[0].team, teamB: A[1].team, scoreA: null, scoreB: null };
+
+  seasons[year].playoffs = { semi1, semi2, final: null };
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  saveToFirebase();
+  renderPlayoffs();
+  alert(`✅ Playoffs generated for ${year}!`);
+}
+
+function renderPlayoffs() {
+  const year = currentYear();
+  const data = seasons[year]?.playoffs;
+  const div = document.getElementById("playoffsContent");
+
+  if (!data) {
+    div.innerHTML = "<p>No playoffs yet.</p>";
+    if (isAdmin) document.getElementById("generatePlayoffsBtn").classList.remove("hidden");
+    return;
+  }
+
+  document.getElementById("generatePlayoffsBtn").classList.add("hidden");
+
+  const { semi1, semi2, final } = data;
+  div.innerHTML = `
+    <h3>Semifinals</h3>
+    <p>${semi1.teamA} vs ${semi1.teamB} ${semi1.scoreA != null ? `— ${semi1.scoreA}-${semi1.scoreB}` : ""}</p>
+    <p>${semi2.teamA} vs ${semi2.teamB} ${semi2.scoreA != null ? `— ${semi2.scoreA}-${semi2.scoreB}` : ""}</p>
+
+    ${final ? `
+      <h3>Final</h3>
+      <p>${final.teamA} vs ${final.teamB} ${final.scoreA != null ? `— ${final.scoreA}-${final.scoreB}` : ""}</p>
+      ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
+    ` : ""}
+  `;
+
+  if (isAdmin) {
+    document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
+  }
+}
+
+function setFinalWinner() {
+  const year = currentYear();
+  const data = seasons[year]?.playoffs;
+  if (!data?.final) return alert("No final match yet.");
+
+  const winner = prompt("Enter final winner:");
+  if (!winner) return;
+  seasons[year].winner = winner;
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  saveToFirebase();
+  alert(`🏆 ${winner} is the ${year} Champion!`);
+  renderPlayoffs();
 }
 
 // =============== PLAYERS ===================
@@ -580,6 +648,10 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
+document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
+document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
