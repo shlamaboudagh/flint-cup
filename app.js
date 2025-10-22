@@ -315,11 +315,28 @@ function delPlayer(i) {
   renderPlayers(); renderStats();
 }
 
-document.getElementById("addPlayerBtn").onclick = addPlayer;
-document.querySelector(".player-list").onclick = e => {
-  if (e.target.classList.contains("editPlayerBtn")) editPlayer(e.target.dataset.i);
-  if (e.target.classList.contains("delPlayerBtn")) delPlayer(e.target.dataset.i);
-};
+// ✅ Schedules Button Event Listeners
+const addGameBtn = document.getElementById("addGameBtn");
+const schedulesContainer = document.getElementById("schedulesContainer");
+
+// Add Game button
+if (addGameBtn) {
+  addGameBtn.addEventListener("click", addGame);
+}
+
+// Edit/Delete buttons inside schedule list
+if (schedulesContainer) {
+  schedulesContainer.addEventListener("click", e => {
+    const btn = e.target;
+    if (btn.classList.contains("editGameBtn")) {
+      editGame(btn.dataset.team, btn.dataset.i);
+    }
+    if (btn.classList.contains("delGameBtn")) {
+      delGame(btn.dataset.team, btn.dataset.i);
+    }
+  });
+}
+
 
 // =============== STATS ===================
 function renderStats() {
@@ -479,6 +496,7 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
 
