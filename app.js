@@ -311,7 +311,6 @@ function renderPlayoffs() {
       ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
     ` : `
       <div id="finalPlaceholder"></div>
-    `}
   `;
 
   // Show “Set Final Winner” only when a final exists but you still want to set winner manually
@@ -740,6 +739,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
