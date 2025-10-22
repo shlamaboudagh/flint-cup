@@ -880,10 +880,23 @@ window.addEventListener("load", () => {
   if (editTeamsBtn)   editTeamsBtn.onclick   = editTeams;
   if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
   if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
+
+  // ✅ Moved INSIDE this block
+  const addPlayerBtn = document.getElementById("addPlayerBtn");
+  if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
+
+  const playerList = document.querySelector(".player-list");
+  if (playerList) {
+    playerList.onclick = e => {
+      if (e.target.classList.contains("editPlayerBtn")) editPlayer(e.target.dataset.i);
+      if (e.target.classList.contains("delPlayerBtn")) delPlayer(e.target.dataset.i);
+    };
+  }
 });
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
