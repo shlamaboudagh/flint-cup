@@ -767,6 +767,48 @@ window.addEventListener("load", () => {
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
 
+// ================= ADMIN FUNCTION PLACEHOLDERS =================
+
+// Create new season
+function setupNewSeason() {
+  const confirmNew = confirm("⚙️ Are you sure you want to start a new season? This will reset all data for the current year.");
+  if (!confirmNew) return;
+
+  const year = currentYear();
+  seasons[year] = { matches: [], standings: {}, playoffs: {}, winner: null };
+
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  alert(`✅ New season for ${year} created!`);
+  renderEverything();
+}
+
+// Edit teams
+function editTeams() {
+  alert("✏️ Edit Teams feature coming soon!");
+}
+
+// Clear season data
+function clearSeason() {
+  const year = currentYear();
+  if (confirm(`🗑️ Are you sure you want to clear ALL data for ${year}?`)) {
+    delete seasons[year];
+    localStorage.setItem("seasons", JSON.stringify(seasons));
+    alert(`Season ${year} cleared.`);
+    renderEverything();
+  }
+}
+
+// Set season winner
+function setWinner() {
+  const year = currentYear();
+  const winner = prompt("🏆 Enter the final winner team name:");
+  if (winner) {
+    seasons[year].winner = winner;
+    localStorage.setItem("seasons", JSON.stringify(seasons));
+    alert(`🏆 ${winner} is the ${year} champion!`);
+    renderEverything();
+  }
+}
 
 
 
