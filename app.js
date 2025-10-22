@@ -276,7 +276,7 @@ function renderStandings() {
     ${sortTeams(data)
       .map(d => `
         <tr>
-          <td>${d.team}</td>
+          <td><button class="teamLink" data-team="${d.team}">${d.team}</button></td>
           <td>${d.MP}</td>
           <td>${d.W}</td>
           <td>${d.L}</td>
@@ -496,6 +496,33 @@ function renderSchedules() {
 
     cont.appendChild(div);
   });
+
+  // 🧭 Team link click handler
+document.querySelectorAll(".teamLink").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const teamName = btn.dataset.team;
+    document.querySelectorAll(".tab-button").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(s => s.classList.remove("active"));
+
+    // Activate schedules tab
+    document.querySelector('[data-tab="schedules"]').classList.add("active");
+    document.getElementById("schedules").classList.add("active");
+
+    // Render schedules (refresh view)
+    renderSchedules();
+
+    // Scroll to the selected team's section
+    const teamDiv = [...document.querySelectorAll(".team-schedule")].find(div => 
+      div.querySelector("h3")?.textContent === teamName
+    );
+    if (teamDiv) {
+      teamDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+      teamDiv.style.boxShadow = "0 0 15px 3px rgba(255,203,5,0.8)";
+      setTimeout(() => (teamDiv.style.boxShadow = ""), 2000);
+    }
+  });
+});
+
 }
 
 // ✏️ Edit Game (updates both teams)
@@ -731,6 +758,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
