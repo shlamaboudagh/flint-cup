@@ -14,10 +14,7 @@
       <button id="admin-login" class="admin-button">⚙ Admin</button>
     </div>
 
-    <div class="logo-section">
-      <img src="flintcup-logo.png" alt="Flint Cup Logo" class="logo" />
-      <h1>Flint Cup</h1>
-    </div>
+    <h1>Flint Cup</h1>
 
     <nav class="tab-bar">
       <button class="tab-button active" data-tab="overview">Overview</button>
@@ -58,10 +55,8 @@
     <!-- =============== STANDINGS TAB =============== -->
     <section id="standings" class="tab-content">
       <h2>Standings</h2>
-
       <h3>Group A</h3>
       <table id="groupA-table" class="standings-table"></table>
-
       <h3>Group B</h3>
       <table id="groupB-table" class="standings-table"></table>
     </section>
@@ -98,10 +93,14 @@
   </main>
 
   <footer>
-    <p>© 2025 Flint Cup • Designed with 💙 in Michigan</p>
+    <p>© 2025 Flint Cup • Designed in Michigan</p>
   </footer>
 
-  <!-- Firebase App logic -->
-  <script type="module" src="app.js"></script>
+  <!-- ✅ FIX: Script runs *after* everything loads -->
+  <script type="module">
+    window.addEventListener("DOMContentLoaded", () => {
+      import("./app.js");
+    });
+  </script>
 </body>
 </html>
