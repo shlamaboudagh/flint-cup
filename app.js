@@ -873,20 +873,19 @@ window.addEventListener("load", renderEverything);
 
 // Attach admin button handlers after the page is fully loaded
 window.addEventListener("load", () => {
-  const setupSeasonBtn  = document.getElementById("setupSeasonBtn");
-  const editTeamsBtn    = document.getElementById("editTeamsBtn");
-  const clearSeasonBtn  = document.getElementById("clearSeasonBtn");
-  const setWinnerBtn    = document.getElementById("setWinnerBtn");
+  const setupSeasonBtn = document.getElementById("setupSeasonBtn");
+  const editTeamsBtn = document.getElementById("editTeamsBtn");
+  const clearSeasonBtn = document.getElementById("clearSeasonBtn");
+  const setWinnerBtn = document.getElementById("setWinnerBtn");
 
   if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
-  if (editTeamsBtn)   editTeamsBtn.onclick   = editTeams;
+  if (editTeamsBtn) editTeamsBtn.onclick = editTeams;
   if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
-  if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
+  if (setWinnerBtn) setWinnerBtn.onclick = setWinner;
 
-  // ✅ Make sure this is INSIDE here (before the closing })
   const addPlayerBtn = document.getElementById("addPlayerBtn");
-console.log("✅ addPlayerBtn found:", addPlayerBtn);
-if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
+  console.log("✅ addPlayerBtn found:", addPlayerBtn);
+  if (addPlayerBtn) {
     console.log("🔗 Connecting Add Player Button...");
     addPlayerBtn.onclick = addPlayer;
   }
@@ -902,32 +901,3 @@ if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
