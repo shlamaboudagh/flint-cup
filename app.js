@@ -104,9 +104,6 @@ tabs.forEach(tab => {
 });
 
 // =============== OVERVIEW ===================
-<script type="module" src="app.js"></script>
-
-
 function setupNewSeason() {
   const year = currentYear();
   if (seasons[year]) return alert(`${year} already exists.`);
@@ -368,4 +365,5 @@ document.getElementById("schedulesContainer").onclick = e => {
   if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
   if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
 };
+
 
