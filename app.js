@@ -351,6 +351,7 @@ function renderStats() {
 }
 
 // =============== SCHEDULES ===================
+// 🏆 Render Schedules (auto-sorted)
 function renderSchedules() {
   const year = currentYear();
   const data = schedules[year] || {};
@@ -362,9 +363,10 @@ function renderSchedules() {
     return;
   }
 
-  // 🗓 Helper to interpret and sort by date (and time if possible)
-  const parseDate = (dateStr, timeStr = "") => {
-    const full = `${dateStr} ${year} ${timeStr}`.trim();
+  // 🗓 Parse date strings like “March 14th” or “Mar 14”
+  const parseDate = (str, year) => {
+    const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
+    const full = `${clean} ${year}`;
     const d = new Date(full);
     return isNaN(d) ? new Date(0) : d;
   };
@@ -374,14 +376,12 @@ function renderSchedules() {
     div.className = "team-schedule";
     div.innerHTML = `<h3>${team}</h3>`;
 
-    // 🔢 Sort that team’s schedule by date, then time
-    const sortedGames = [...data[team]].sort((a, b) => {
-      const da = parseDate(a.date, a.time);
-      const db = parseDate(b.date, b.time);
-      return da - db;
-    });
+    // Sort each team’s games chronologically
+    const sorted = [...data[team]].sort(
+      (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
+    );
 
-    sortedGames.forEach((g, i) => {
+    sorted.forEach((g, i) => {
       div.innerHTML += `
         <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
         ${isAdmin ? `
@@ -394,50 +394,32 @@ function renderSchedules() {
   });
 }
 
+// 🏟 Add Game (adds to both team schedules)
 function addGame() {
   const year = currentYear();
-  const team = prompt("Team:");
-  const opponent = prompt("Opponent:");
-  const date = prompt("Date:");
-  const time = prompt("Time:");
-  const homeaway = prompt("Home/Away:");
-  if (!team || !opponent || !date || !time || !homeaway) return alert("All fields required.");
+  const teamA = prompt("Home team:");
+  const teamB = prompt("Away team:");
+  const date = prompt("Date (e.g., March 14th):");
+  const time = prompt("Time (e.g., 5:00 PM):");
+
+  if (!teamA || !teamB || !date || !time) return alert("All fields required.");
+
   schedules[year] = schedules[year] || {};
-  schedules[year][team] = schedules[year][team] || [];
-  schedules[year][team].push({ opponent, date, time, homeaway });
+
+  // Add to Team A (home)
+  schedules[year][teamA] = schedules[year][teamA] || [];
+  schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
+
+  // Add to Team B (away)
+  schedules[year][teamB] = schedules[year][teamB] || [];
+  schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
+
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
+  alert(`✅ Game added for both ${teamA} and ${teamB}`);
 }
 
-function editGame(team, i) {
-  const year = currentYear();
-  const g = schedules[year][team][i];
-  const opponent = prompt("Opponent:", g.opponent);
-  const date = prompt("Date:", g.date);
-  const time = prompt("Time:", g.time);
-  const homeaway = prompt("Home/Away:", g.homeaway);
-  schedules[year][team][i] = { opponent, date, time, homeaway };
-  localStorage.setItem("schedules", JSON.stringify(schedules));
-  saveToFirebase();
-  renderSchedules();
-}
-
-function delGame(team, i) {
-  const year = currentYear();
-  if (!confirm("Delete this game?")) return;
-  schedules[year][team].splice(i, 1);
-  if (schedules[year][team].length === 0) delete schedules[year][team];
-  localStorage.setItem("schedules", JSON.stringify(schedules));
-  saveToFirebase();
-  renderSchedules();
-}
-
-document.getElementById("addGameBtn").onclick = addGame;
-document.getElementById("schedulesContainer").onclick = e => {
-  if (e.target.classList.contains("editGameBtn")) editGame(e.target.dataset.team, e.target.dataset.i);
-  if (e.target.classList.contains("delGameBtn")) delGame(e.target.dataset.team, e.target.dataset.i);
-};
 
 // =============== ALL-TIME ===================
 function renderAllTime() {
@@ -497,4 +479,5 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
