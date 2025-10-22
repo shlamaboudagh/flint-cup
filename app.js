@@ -881,9 +881,13 @@ window.addEventListener("load", () => {
   if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
   if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
 
-  // ✅ Moved INSIDE this block
+  // ✅ Make sure this is INSIDE here (before the closing })
   const addPlayerBtn = document.getElementById("addPlayerBtn");
-  if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
+console.log("✅ addPlayerBtn found:", addPlayerBtn);
+if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
+    console.log("🔗 Connecting Add Player Button...");
+    addPlayerBtn.onclick = addPlayer;
+  }
 
   const playerList = document.querySelector(".player-list");
   if (playerList) {
@@ -896,6 +900,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
