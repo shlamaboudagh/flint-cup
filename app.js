@@ -145,47 +145,123 @@ setupSeasonBtn.onclick = () => {
   renderEverything();
 };
 
-// =============== MATCHES ===================
+// ================= MATCHES =================
 function renderMatches() {
   const list = document.querySelector(".match-list");
   const year = currentYear();
   const arr = matches[year] || [];
   list.innerHTML = arr.map((m, i) => `
     <p><strong>${m.teamA}</strong> ${m.scoreA}-${m.scoreB} <strong>${m.teamB}</strong>
-    ${isAdmin ? `<button class="editMatchBtn" data-i="${i}">✏️</button>
-    <button class="delMatchBtn" data-i="${i}">❌</button>` : ""}</p>
+    ${isAdmin ? `
+      <button class="editMatchBtn" data-i="${i}">✏️</button>
+      <button class="delMatchBtn" data-i="${i}">❌</button>` : ""}
+    </p>
   `).join("") || "<p>No matches yet.</p>";
 }
 
-document.getElementById("addMatchBtn").onclick = () => {
+// ➕ Add Match
+function addMatch() {
   const year = currentYear();
   const teamA = prompt("Team A:");
   const teamB = prompt("Team B:");
   const scoreA = +prompt(`${teamA} score:`) || 0;
   const scoreB = +prompt(`${teamB} score:`) || 0;
-  if (!teamA || !teamB) return;
+  if (!teamA || !teamB) return alert("Team names required.");
+
   matches[year] = matches[year] || [];
   matches[year].push({ teamA, teamB, scoreA, scoreB });
+
+  // 🏟 Update schedule results (if they exist)
+  updateScheduleResults(year, teamA, teamB, scoreA, scoreB);
+
+  // 🧮 Recalculate standings
+  renderStandings();
   saveToFirebase();
   renderMatches();
-};
+  renderSchedules();
+}
 
-// =============== STANDINGS ===================
+// ✏️ Edit Match
+function editMatch(i) {
+  const year = currentYear();
+  const m = matches[year][i];
+  const scoreA = +prompt(`${m.teamA} score:`, m.scoreA);
+  const scoreB = +prompt(`${m.teamB} score:`, m.scoreB);
+
+  matches[year][i] = { ...m, scoreA, scoreB };
+
+  updateScheduleResults(year, m.teamA, m.teamB, scoreA, scoreB);
+  renderStandings();
+  saveToFirebase();
+  renderMatches();
+  renderSchedules();
+}
+
+// ❌ Delete Match
+function delMatch(i) {
+  const year = currentYear();
+  if (!confirm("Delete this match?")) return;
+  matches[year].splice(i, 1);
+  renderStandings();
+  saveToFirebase();
+  renderMatches();
+  renderSchedules();
+}
+
+// 🧩 Helper: update result in schedules
+function updateScheduleResults(year, teamA, teamB, scoreA, scoreB) {
+  if (!schedules[year]) return;
+
+  [teamA, teamB].forEach(team => {
+    if (schedules[year][team]) {
+      const game = schedules[year][team].find(
+        x => x.opponent === (team === teamA ? teamB : teamA)
+      );
+      if (game) game.result = `${scoreA}-${scoreB}`;
+    }
+  });
+}
+
+// ================= STANDINGS =================
 function calcStandings() {
   const year = currentYear();
   const s = seasons[year];
   if (!s) return { A: [], B: [] };
+
+  // Initialize table for every team
   const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0, W:0, L:0, T:0, GF:0, GA:0, P:0 });
-  (matches[year] || []).forEach(m => {
-    const A = table[m.teamA], B = table[m.teamB];
-    if (!A || !B) return;
-    A.MP++; B.MP++; A.GF+=m.scoreA; B.GF+=m.scoreB; A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;}
+  [...s.groupA, ...s.groupB].forEach(t => table[t] = {
+    MP: 0, W: 0, L: 0, T: 0, GF: 0, GA: 0, P: 0
   });
-  for (const t in table) table[t].P = 3*table[t].W + table[t].T;
-  return { A: s.groupA.map(t=>({team:t,...table[t]})), B: s.groupB.map(t=>({team:t,...table[t]})) };
+
+  // Process each match
+  (matches[year] || []).forEach(m => {
+    const A = table[m.teamA];
+    const B = table[m.teamB];
+    if (!A || !B) return;
+
+    A.MP++; B.MP++;
+    A.GF += m.scoreA; A.GA += m.scoreB;
+    B.GF += m.scoreB; B.GA += m.scoreA;
+
+    if (m.scoreA > m.scoreB) {
+      A.W++; B.L++;
+    } else if (m.scoreA < m.scoreB) {
+      B.W++; A.L++;
+    } else {
+      A.T++; B.T++;
+    }
+  });
+
+  // Compute points
+  Object.values(table).forEach(t => t.P = 3*t.W + t.T);
+
+  return {
+    A: s.groupA.map(t => ({ team: t, ...table[t] })),
+    B: s.groupB.map(t => ({ team: t, ...table[t] }))
+  };
 }
+
 
 function renderStandings() {
   const { A, B } = calcStandings();
@@ -204,17 +280,23 @@ function renderStandings() {
 
   // 🟡 Make each team name clickable to jump to its schedule
   document.querySelectorAll(".team-link").forEach(td => {
-    td.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      sections.forEach(s => s.classList.remove("active"));
-      document.querySelector('[data-tab="schedules"]').classList.add("active");
-      document.getElementById("schedules").classList.add("active");
-      renderSchedules(td.dataset.team); // Focus on that team’s schedule
-    });
-  });
-}
+  td.addEventListener("click", () => {
+    const teamName = td.dataset.team;
+    tabs.forEach(t => t.classList.remove("active"));
+    sections.forEach(s => s.classList.remove("active"));
+    document.querySelector('[data-tab="schedules"]').classList.add("active");
+    document.getElementById("schedules").classList.add("active");
+    renderSchedules(teamName);
 
-// =============== SCHEDULES ===================
+    // Scroll to matching team name (case-insensitive)
+    setTimeout(() => {
+      const el = Array.from(document.querySelectorAll(".team-schedule h3"))
+        .find(h3 => h3.textContent.toLowerCase() === teamName.toLowerCase());
+      el?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  });
+});
+
 // ================= SCHEDULES =================
 function parseDate(str, year) {
   const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
@@ -264,19 +346,20 @@ function addGame() {
   const teamB = prompt("Away team:");
   const date = prompt("Date (e.g., March 14th):");
   const time = prompt("Time (e.g., 5:00 PM):");
-  if (!teamA || !teamB || !date || !time) return alert("All fields are required.");
+  if (!teamA || !teamB || !date || !time) return alert("All fields required.");
 
   schedules[year] = schedules[year] || {};
   schedules[year][teamA] = schedules[year][teamA] || [];
   schedules[year][teamB] = schedules[year][teamB] || [];
 
-  // Add for both
+  // Add to both
   schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
   schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
 
-  // Sort each team's schedule by date
-  schedules[year][teamA].sort((a, b) => parseDate(a.date, year) - parseDate(b.date, year));
-  schedules[year][teamB].sort((a, b) => parseDate(a.date, year) - parseDate(b.date, year));
+  // Sort each team’s list by date
+  const parseDate = s => new Date(s.date.replace(/(\d+)(st|nd|rd|th)/, "$1") + " " + year);
+  schedules[year][teamA].sort((a,b) => parseDate(a) - parseDate(b));
+  schedules[year][teamB].sort((a,b) => parseDate(a) - parseDate(b));
 
   saveToFirebase();
   renderSchedules();
@@ -334,7 +417,6 @@ document.getElementById("schedulesContainer").addEventListener("click", e => {
   if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
 });
 
-
 // =============== PLAYERS ===================
 function renderPlayers() {
   const list = document.querySelector(".player-list");
@@ -360,17 +442,18 @@ if (addPlayerBtn) {
     const assists = +prompt("Assists:") || 0;
     const yellow = +prompt("Yellow cards:") || 0;
     const red = +prompt("Red cards:") || 0;
-    if (!name || !team) return alert("Player name and team are required.");
+    if (!name || !team) return alert("Name and team required.");
 
     players[year] = players[year] || [];
     players[year].push({ name, team, goals, assists, yellow, red });
-
     saveToFirebase();
     renderPlayers();
+    renderStats();
+    renderAllTime();
   });
 }
 
-// ✏️ Edit & ❌ Delete
+// ✏️ Edit / ❌ Delete Player
 document.querySelector(".player-list").addEventListener("click", e => {
   const btn = e.target;
   const year = currentYear();
@@ -381,10 +464,12 @@ document.querySelector(".player-list").addEventListener("click", e => {
     p.team = prompt("Team:", p.team);
     p.goals = +prompt("Goals:", p.goals);
     p.assists = +prompt("Assists:", p.assists);
-    p.yellow = +prompt("Yellows:", p.yellow);
-    p.red = +prompt("Reds:", p.red);
+    p.yellow = +prompt("Yellow cards:", p.yellow);
+    p.red = +prompt("Red cards:", p.red);
     saveToFirebase();
     renderPlayers();
+    renderStats();
+    renderAllTime();
   }
   if (btn.classList.contains("delPlayerBtn")) {
     const i = btn.dataset.i;
@@ -392,10 +477,11 @@ document.querySelector(".player-list").addEventListener("click", e => {
       players[year].splice(i, 1);
       saveToFirebase();
       renderPlayers();
+      renderStats();
+      renderAllTime();
     }
   }
 });
-
 
 // =============== STATS + ALLTIME (same as before) ===============
 function renderStats(){/* omitted for brevity but keep your working one */}
@@ -410,4 +496,5 @@ async function renderEverything(){
 }
 yearDropdown.onchange=renderEverything;
 window.addEventListener("load",renderEverything);
+
 
