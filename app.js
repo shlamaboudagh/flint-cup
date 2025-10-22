@@ -240,112 +240,7 @@ document.querySelector(".match-list").onclick = e => {
   if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
 };
 
-// =============== STANDINGS ===================
-function calcStandings() {
-  const year = currentYear(), s = seasons[year];
-  if (!s) return { A: [], B: [] };
-  const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
-  (matches[year] || []).forEach(m => {
-    if (!table[m.teamA] || !table[m.teamB]) return;
-    const A = table[m.teamA], B = table[m.teamB];
-    A.MP++; B.MP++; A.GF+=m.scoreA; B.GF+=m.scoreB; A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;} });
-  for (const t in table) table[t].P = 3*table[t].W + table[t].T;
-  return { A: s.groupA.map(t => ({ team:t, ...table[t] })), B: s.groupB.map(t => ({ team:t, ...table[t] })) };
-}
-
-function renderStandings() {
-  const { A, B } = calcStandings();
-  const render = data => `
-    <tr><th>Team</th><th>MP</th><th>W</th><th>L</th><th>T</th><th>GF</th><th>GA</th><th>P</th></tr>
-    ${data.map(d=>`<tr><td>${d.team}</td><td>${d.MP}</td><td>${d.W}</td><td>${d.L}</td><td>${d.T}</td><td>${d.GF}</td><td>${d.GA}</td><td>${d.P}</td></tr>`).join("")}`;
-  document.getElementById("groupA-table").innerHTML = render(A);
-  document.getElementById("groupB-table").innerHTML = render(B);
-}
-
-// =============== PLAYERS ===================
-function renderPlayers() {
-  const list = document.querySelector(".player-list");
-  const year = currentYear();
-  const arr = players[year] || [];
-  list.innerHTML = arr.map((p,i)=>`
-    <p><strong>${p.name}</strong> (${p.team}) — ⚽ ${p.goals} | 🎯 ${p.assists} | 🟨 ${p.yellow} | 🟥 ${p.red}
-    ${isAdmin ? `<button class="editPlayerBtn" data-i="${i}">✏️</button>
-    <button class="delPlayerBtn" data-i="${i}">❌</button>` : ""}</p>
-  `).join("") || "<p>No players yet.</p>";
-}
-
-function addPlayer() {
-  const year = currentYear();
-  const name = prompt("Name:");
-  const team = prompt("Team:");
-  const goals = +prompt("Goals:") || 0;
-  const assists = +prompt("Assists:") || 0;
-  const yellow = +prompt("Yellow cards:") || 0;
-  const red = +prompt("Red cards:") || 0;
-  if (!name || !team) return alert("Name & team required.");
-  players[year] = players[year] || [];
-  players[year].push({ name, team, goals, assists, yellow, red });
-  localStorage.setItem("players", JSON.stringify(players));
-  saveToFirebase();
-  renderPlayers(); renderStats();
-}
-
-function editPlayer(i) {
-  const year = currentYear();
-  const p = players[year][i];
-  p.name = prompt("Name:", p.name);
-  p.team = prompt("Team:", p.team);
-  p.goals = +prompt("Goals:", p.goals);
-  p.assists = +prompt("Assists:", p.assists);
-  p.yellow = +prompt("Yellows:", p.yellow);
-  p.red = +prompt("Reds:", p.red);
-  localStorage.setItem("players", JSON.stringify(players));
-  saveToFirebase();
-  renderPlayers(); renderStats();
-}
-
-function delPlayer(i) {
-  const year = currentYear();
-  if (!confirm("Delete player?")) return;
-  players[year].splice(i,1);
-  localStorage.setItem("players", JSON.stringify(players));
-  saveToFirebase();
-  renderPlayers(); renderStats();
-}
-
-// =============== STATS ===================
-function renderStats() {
-  const statsDiv = document.querySelector(".stats-board");
-  const year = currentYear();
-  const arr = players[year] || [];
-  if (!arr.length) {
-    statsDiv.innerHTML = "<p>No player stats yet.</p>";
-    return;
-  }
-  const getTop = key => {
-    const max = Math.max(...arr.map(p => p[key] || 0));
-    const leaders = arr.filter(p => p[key] === max && max > 0);
-    return { max, leaders };
-  };
-  const build = (title, d, emoji) =>
-    d.max ? `${emoji} ${title}: <strong>${d.leaders.map(p=>p.name).join(", ")}</strong> — ${d.max}`
-          : `${emoji} ${title}: No record yet.`;
-
-  statsDiv.innerHTML = `
-    <div class="leaderboard">
-      <h3>🏆 Season Leaders (${year})</h3>
-      <p>${build("Top Scorer", getTop("goals"), "⚽")}</p>
-      <p>${build("Top Assister", getTop("assists"), "🎯")}</p>
-      <p>${build("Most Yellow Cards", getTop("yellow"), "🟨")}</p>
-      <p>${build("Most Red Cards", getTop("red"), "🟥")}</p>
-    </div>
-  `;
-}
-
 // =============== SCHEDULES ===================
-// 🏆 Render Schedules (auto-sorted)
 function renderSchedules() {
   const year = currentYear();
   const data = schedules[year] || {};
@@ -357,136 +252,68 @@ function renderSchedules() {
     return;
   }
 
-  // 🗓 Parse date strings like “March 14th” or “Mar 14”
-  const parseDate = (str, year) => {
-    const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
-    const full = `${clean} ${year}`;
-    const d = new Date(full);
-    return isNaN(d) ? new Date(0) : d;
-  };
-
   Object.keys(data).forEach(team => {
     const div = document.createElement("div");
     div.className = "team-schedule";
     div.innerHTML = `<h3>${team}</h3>`;
 
-    // Sort each team’s games chronologically
-    const sorted = [...data[team]].sort(
-      (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
-    );
-
-    sorted.forEach((g, i) => {
+    (data[team] || []).forEach((g, i) => {
       div.innerHTML += `
         <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
-        ${isAdmin ? `
-          <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
-          <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>
-        ` : ""}</p>`;
+        ${isAdmin ? `<button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
+        <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>` : ""}</p>`;
     });
 
     cont.appendChild(div);
   });
 }
 
-// 🏟 Add Game (adds to both team schedules)
 function addGame() {
   const year = currentYear();
-  const teamA = prompt("Home team:");
-  const teamB = prompt("Away team:");
-  const date = prompt("Date (e.g., March 14th):");
-  const time = prompt("Time (e.g., 5:00 PM):");
-
-  if (!teamA || !teamB || !date || !time) return alert("All fields required.");
+  const team = prompt("Team name:");
+  const opponent = prompt("Opponent:");
+  const date = prompt("Date:");
+  const time = prompt("Time:");
+  const homeaway = prompt("Home/Away:");
+  if (!team || !opponent || !date || !time) return;
 
   schedules[year] = schedules[year] || {};
-
-  // Add to Team A (home)
-  schedules[year][teamA] = schedules[year][teamA] || [];
-  schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
-
-  // Add to Team B (away)
-  schedules[year][teamB] = schedules[year][teamB] || [];
-  schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
+  schedules[year][team] = schedules[year][team] || [];
+  schedules[year][team].push({ opponent, date, time, homeaway });
 
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
-  alert(`✅ Game added for both ${teamA} and ${teamB}`);
 }
 
-// ✏️ Edit Game (updates both teams)
 function editGame(team, i) {
   const year = currentYear();
   const g = schedules[year][team][i];
-  if (!g) return alert("Could not find game data.");
-
   const newOpponent = prompt("Opponent:", g.opponent);
   const newDate = prompt("Date:", g.date);
   const newTime = prompt("Time:", g.time);
   const newHomeAway = prompt("Home/Away:", g.homeaway);
-
-  // Update for this team
   schedules[year][team][i] = { opponent: newOpponent, date: newDate, time: newTime, homeaway: newHomeAway };
-
-  // Update for opponent
-  const oppTeam = g.opponent;
-  const oppList = schedules[year][oppTeam];
-  if (oppList) {
-    const oppIndex = oppList.findIndex(x => x.opponent === team && x.date === g.date && x.time === g.time);
-    if (oppIndex !== -1) {
-      oppList[oppIndex] = { opponent: team, date: newDate, time: newTime, homeaway: newHomeAway === "Home" ? "Away" : "Home" };
-    }
-  }
-
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
-  alert(`✅ Updated game between ${team} and ${newOpponent}`);
 }
 
-// ❌ Delete Game (removes from both teams)
 function delGame(team, i) {
   const year = currentYear();
-  const g = schedules[year][team][i];
-  if (!g) return alert("Could not find game data.");
-  if (!confirm(`Delete this game (${team} vs ${g.opponent})?`)) return;
-
-  // Delete from team
+  if (!confirm("Delete this game?")) return;
   schedules[year][team].splice(i, 1);
-  if (schedules[year][team].length === 0) delete schedules[year][team];
-
-  // Delete from opponent’s schedule too
-  const oppTeam = g.opponent;
-  const oppList = schedules[year][oppTeam];
-  if (oppList) {
-    const oppIndex = oppList.findIndex(x => x.opponent === team && x.date === g.date && x.time === g.time);
-    if (oppIndex !== -1) {
-      oppList.splice(oppIndex, 1);
-      if (oppList.length === 0) delete schedules[year][oppTeam];
-    }
-  }
-
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
-  alert(`🗑 Deleted game between ${team} and ${g.opponent}`);
 }
 
-// ✅ Schedules Button Event Listeners (moved below all function definitions)
-const addGameBtn = document.getElementById("addGameBtn");
-const schedulesContainer = document.getElementById("schedulesContainer");
-
-if (addGameBtn) {
-  addGameBtn.addEventListener("click", addGame);
-}
-if (schedulesContainer) {
-  schedulesContainer.addEventListener("click", e => {
-    const btn = e.target;
-    if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
-    if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
-  });
-});
-
+document.getElementById("addGameBtn").onclick = addGame;
+document.getElementById("schedulesContainer").onclick = e => {
+  const btn = e.target;
+  if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
+  if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
+};
 
 // =============== ALL-TIME ===================
 function renderAllTime() {
@@ -546,11 +373,3 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
-
-
-
-
-
-
-
-
