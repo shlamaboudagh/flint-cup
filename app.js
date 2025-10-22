@@ -222,6 +222,13 @@ function updateScheduleResults(year, teamA, teamB, scoreA, scoreB) {
   });
 }
 
+// ✅ Match buttons (Add / Edit / Delete)
+document.getElementById("addMatchBtn").onclick = addMatch;
+document.querySelector(".match-list").onclick = e => {
+  if (e.target.classList.contains("editMatchBtn")) editMatch(e.target.dataset.i);
+  if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
+};
+
 // ================= STANDINGS =================
 function calcStandings() {
   const year = currentYear();
@@ -488,13 +495,16 @@ function renderStats(){/* omitted for brevity but keep your working one */}
 function renderAllTime(){/* same as before */}
 
 // =============== INITIAL RENDER ===================
-async function renderEverything(){
+async function renderEverything() {
   await loadFromFirebase();
   renderOverview();
   renderMatches();
   renderStandings();
+  renderPlayers();
+  renderStats();
+  renderAllTime();
+  renderSchedules();
 }
-yearDropdown.onchange=renderEverything;
-window.addEventListener("load",renderEverything);
-
+yearDropdown.onchange = renderEverything;
+window.addEventListener("load", renderEverything);
 
