@@ -61,33 +61,43 @@
   </div>
 
   <main id="content">
-    <!-- Overview -->
-    <section id="overview" class="tab-content active">
-      <h2 id="seasonTitle">Spring 2025 Season</h2>
+    <!-- OVERVIEW -->
+<section id="overview" class="tab-content active">
+  <h2 id="seasonTitle">Spring 2025 Season</h2>
+  <div id="overviewContent"></div>
+  <button id="setupSeasonBtn" class="admin-only hidden">Setup Season</button>
+  <button id="editTeamsBtn" class="admin-only hidden">Edit Teams</button>
+  <button id="setWinnerBtn" class="admin-only hidden">Set Winner</button>
+  <button id="clearSeasonBtn" class="admin-only hidden">Clear Data</button>
+</section>
 
-      <!-- Admin Controls -->
-      <div class="admin-only hidden">
-        <button id="setupSeasonBtn" class="hidden">⚙️ Setup New Season</button>
-        <button id="editTeamsBtn" class="hidden">✏️ Edit Season Teams</button>
-        <button id="setWinnerBtn" class="hidden">🏆 Set Winner</button>
-        <button id="clearSeasonBtn" class="hidden">🗑 Clear Season Data</button>
-      </div>
+<!-- STANDINGS -->
+<section id="standings" class="tab-content">
+  <h2>Standings</h2>
+  <h3>Group A</h3>
+  <table id="groupA-table"></table>
+  <h3>Group B</h3>
+  <table id="groupB-table"></table>
+</section>
 
-      <div id="overviewContent">
-        <p>
-          Welcome to the Flint Cup! A 10-team tournament split into two groups.
-          Each team competes within and across groups for the top spot.
-        </p>
-      </div>
-    </section>
+<!-- PLAYERS -->
+<section id="players" class="tab-content">
+  <h2>Players</h2>
+  <div class="player-list"></div>
+  <button id="addPlayerBtn" class="admin-only hidden">+ Add Player</button>
+</section>
 
-    <!-- Matches -->
-    <section id="matches" class="tab-content">
-      <h2>Matches</h2>
-      <div class="match-list"></div>
-      <button id="addMatchBtn" class="admin-only hidden">+ Add Match</button>
-    </section>
+<!-- STATS -->
+<section id="stats" class="tab-content">
+  <h2>Season Leaders</h2>
+  <div class="stats-board"></div>
+</section>
 
+<!-- ALL-TIME -->
+<section id="alltime" class="tab-content">
+  <h2>All-Time Records</h2>
+  <div class="alltime-list"></div>
+</section>
     <!-- Standings -->
     <section id="standings" class="tab-content">
       <h2>Standings</h2>
@@ -143,3 +153,4 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
+
