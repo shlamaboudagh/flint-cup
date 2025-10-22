@@ -860,34 +860,6 @@ function attachAdminButtons() {
   console.log("⚙️ Admin buttons attached.");
 }
 
-// =============== ADD PLAYER FUNCTION (UPDATED) ===================
-function addPlayer() {
-  const year = currentYear();
-
-  const name = prompt("Player Name:");
-  if (!name) return alert("⚠️ Player name required.");
-
-  const team = prompt("Team Name:");
-  if (!team) return alert("⚠️ Team name required.");
-
-  const goals = +prompt("Goals scored (enter 0 if none):") || 0;
-  const assists = +prompt("Assists (enter 0 if none):") || 0;
-  const yellow = +prompt("Yellow cards (enter 0 if none):") || 0;
-  const red = +prompt("Red cards (enter 0 if none):") || 0;
-
-  players[year] = players[year] || [];
-  players[year].push({ name, team, goals, assists, yellow, red });
-
-  localStorage.setItem("players", JSON.stringify(players));
-  saveToFirebase();
-
-  renderPlayers();
-  renderStats();
-  renderAllTime();
-
-  console.log(`✅ Added player: ${name} (${team}) — G:${goals} A:${assists} Y:${yellow} R:${red}`);
-}
-
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
@@ -968,6 +940,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
