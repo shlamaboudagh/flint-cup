@@ -258,37 +258,11 @@ function calcStandings() {
 
 function renderStandings() {
   const { A, B } = calcStandings();
-
-  // 🏅 Sort each group: highest points first, then goal difference, then goals for
-  const sortTeams = arr =>
-    arr.sort((a, b) =>
-      b.P - a.P || (b.GF - b.GA) - (a.GF - a.GA) || b.GF - a.GF
-    );
-
-  const renderTable = data => `
-    <tr>
-      <th>Team</th><th>MP</th><th>W</th><th>L</th>
-      <th>T</th><th>GF</th><th>GA</th><th>P</th>
-    </tr>
-    ${sortTeams(data)
-      .map(
-        d => `
-        <tr>
-          <td>${d.team}</td>
-          <td>${d.MP}</td>
-          <td>${d.W}</td>
-          <td>${d.L}</td>
-          <td>${d.T}</td>
-          <td>${d.GF}</td>
-          <td>${d.GA}</td>
-          <td>${d.P}</td>
-        </tr>`
-      )
-      .join("")}
-  `;
-
-  document.getElementById("groupA-table").innerHTML = renderTable(A);
-  document.getElementById("groupB-table").innerHTML = renderTable(B);
+  const render = data => `
+    <tr><th>Team</th><th>MP</th><th>W</th><th>L</th><th>T</th><th>GF</th><th>GA</th><th>P</th></tr>
+    ${data.map(d=>`<tr><td>${d.team}</td><td>${d.MP}</td><td>${d.W}</td><td>${d.L}</td><td>${d.T}</td><td>${d.GF}</td><td>${d.GA}</td><td>${d.P}</td></tr>`).join("")}`;
+  document.getElementById("groupA-table").innerHTML = render(A);
+  document.getElementById("groupB-table").innerHTML = render(B);
 }
 
 // =============== PLAYERS ===================
@@ -586,6 +560,7 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
 
