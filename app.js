@@ -145,6 +145,8 @@ if (isAdmin) {
     <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
     ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
   `;
+
+attachAdminButtons();
 }
 
 function setupNewSeason() {
@@ -199,7 +201,17 @@ function setWinner() {
   localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`🏆 ${winner} set as ${year} Champion!`);
-  renderEverything();
+
+  function attachAdminButtons() {
+  const setupSeasonBtn  = document.getElementById("setupSeasonBtn");
+  const editTeamsBtn    = document.getElementById("editTeamsBtn");
+  const clearSeasonBtn  = document.getElementById("clearSeasonBtn");
+  const setWinnerBtn    = document.getElementById("setWinnerBtn");
+
+  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
+  if (editTeamsBtn)   editTeamsBtn.onclick   = editTeams;
+  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
+  if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
 }
 
 // =============== MATCHES ===================
@@ -766,6 +778,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
