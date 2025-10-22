@@ -862,34 +862,32 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
-  await loadFromFirebase(); // wait until Firebase is done
-
-  // Render all public-facing tabs
+  await loadFromFirebase(); // Wait for Firebase data
   renderOverview();
   renderMatches();
   renderStandings();
-  renderStats();
   renderPlayers();
+  renderStats();
   renderSchedules();
   renderAllTime();
   renderPlayoffs();
-
   console.log("✅ All sections rendered.");
 }
 
-// 🧭 Re-render everything when year is changed
+// 🌀 Re-render when year changes
 yearDropdown.addEventListener("change", () => {
   localStorage.setItem("selectedYear", yearDropdown.value);
   renderEverything();
 });
 
-// 🚀 Render everything once when page first loads
+// 🧠 Attach ALL button handlers once page loads
 window.addEventListener("load", async () => {
-  await renderEverything(); // wait until data is ready
+  await renderEverything();
 
-  // Attach all admin-related buttons afterward
+  // ===== ADMIN CONTROLS =====
   attachAdminButtons();
 
+  // ===== PLAYER CONTROLS =====
   const addPlayerBtn = document.getElementById("addPlayerBtn");
   if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
 
@@ -901,15 +899,31 @@ window.addEventListener("load", async () => {
     };
   }
 
-   const genBtn = document.getElementById("generatePlayoffsBtn");
+  // ===== MATCH CONTROLS =====
+  const matchList = document.querySelector(".match-list");
+  if (matchList) {
+    matchList.onclick = e => {
+      if (e.target.classList.contains("editMatchBtn")) editMatch(e.target.dataset.i);
+      if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
+    };
+  }
+
+  const addMatchBtn = document.getElementById("addMatchBtn");
+  if (addMatchBtn) addMatchBtn.onclick = addMatch;
+
+  // ===== PLAYOFF CONTROLS =====
+  const genBtn = document.getElementById("generatePlayoffsBtn");
   const setWinnerBtn = document.getElementById("setFinalWinnerBtn");
   if (genBtn) genBtn.onclick = generatePlayoffs;
   if (setWinnerBtn) setWinnerBtn.onclick = setFinalWinner;
-}); // 👈 this one closes the window.load function!
+
+  console.log("✅ All buttons connected successfully.");
+});
 
 // ✅ these two lines MUST be outside that block
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
