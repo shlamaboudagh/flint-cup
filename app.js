@@ -370,6 +370,26 @@ function renderPlayoffs() {
     document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
   }
 
+function generatePlayoffs() {
+  const year = currentYear();
+  const A = calcStandings().A;
+  const B = calcStandings().B;
+
+  if (!A.length || !B.length) {
+    return alert("Need completed standings for both groups before generating playoffs.");
+  }
+
+  // Top 2 from each group advance
+  const semi1 = { teamA: A[0].team, teamB: B[1].team, scoreA: null, scoreB: null };
+  const semi2 = { teamA: B[0].team, teamB: A[1].team, scoreA: null, scoreB: null };
+
+  seasons[year].playoffs = { semi1, semi2 };
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  saveToFirebase();
+  alert("✅ Playoffs generated!");
+  renderPlayoffs();
+}
+
 function setFinalWinner() {
   const year = currentYear();
   const data = seasons[year]?.playoffs;
@@ -786,6 +806,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
