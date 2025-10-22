@@ -953,6 +953,11 @@ function renderStats(){/* omitted for brevity but keep your working one */}
 function renderAllTime(){/* same as before */}
 
 // =============== INITIAL RENDER ===================
+// ✅ ADMIN BUTTON EVENT LISTENERS
+if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
+if (editTeamsBtn) editTeamsBtn.onclick = editTeams;
+if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
+if (setWinnerBtn) setWinnerBtn.onclick = setWinner;
 async function renderEverything(){
   await loadFromFirebase();
   renderOverview();
@@ -961,5 +966,6 @@ async function renderEverything(){
 }
 yearDropdown.onchange=renderEverything;
 window.addEventListener("load",renderEverything);
+
 
 
