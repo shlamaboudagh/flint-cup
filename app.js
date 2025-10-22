@@ -201,6 +201,7 @@ function setWinner() {
   localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`🏆 ${winner} set as ${year} Champion!`);
+}
 
   function attachAdminButtons() {
   const setupSeasonBtn  = document.getElementById("setupSeasonBtn");
@@ -785,6 +786,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
