@@ -337,6 +337,7 @@ function calcStandings() {
 
 // =============== STANDINGS ===================
 function renderStandings() {
+  console.log("📊 Rendering standings for:", currentYear(), seasons[currentYear()]);
   const { A, B } = calcStandings();
 
   // 🏅 Sort by points → goal diff → goals for
@@ -883,6 +884,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
