@@ -197,6 +197,7 @@ footer {
   position: absolute;
   top: 10px;
   left: 20px;
+  z-index: 1000;
 }
 
 #yearDropdown {
@@ -413,3 +414,4 @@ footer {
   color: #00274C;
   transform: scale(1.05);
 }
+
