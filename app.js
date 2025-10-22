@@ -104,36 +104,54 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // =============== OVERVIEW ===================
   function renderOverview() {
-    const year = currentYear();
-    seasonTitle.textContent = `Spring ${year} Season`;
-    const data = seasons[year];
-    overviewContent.innerHTML = "";
+  const year = currentYear();
+  seasonTitle.textContent = `Spring ${year} Season`;
+  const data = seasons[year];
 
-    if (!data) {
-      overviewContent.innerHTML = `<p>No Flint Cup data for ${year} yet.</p>`;
-      if (isAdmin) setupSeasonBtn.classList.remove("hidden");
-      else setupSeasonBtn.classList.add("hidden");
-      editTeamsBtn.classList.add("hidden");
-      setWinnerBtn.classList.add("hidden");
-      clearSeasonBtn.classList.add("hidden");
-      return;
-    }
+  // Always show the welcome blurb + then add season details below
+  const intro = `
+    <p>
+      Welcome to the Flint Cup! A 10-team tournament split into two groups.
+      Each team competes within and across groups for the top spot.
+    </p>
+  `;
 
+  if (!data) {
+    overviewContent.innerHTML = intro + `<p>No Flint Cup data for ${year} yet.</p>`;
+    // Buttons visibility for "no season" state
     if (isAdmin) {
-      setupSeasonBtn.classList.add("hidden");
-      editTeamsBtn.classList.remove("hidden");
-      setWinnerBtn.classList.remove("hidden");
-      clearSeasonBtn.classList.remove("hidden");
+      setupSeasonBtn.classList.remove("hidden");
     } else {
       setupSeasonBtn.classList.add("hidden");
     }
-
-    overviewContent.innerHTML = `
-      <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
-      <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
-      ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
-    `;
+    editTeamsBtn.classList.add("hidden");
+    setWinnerBtn.classList.add("hidden");
+    clearSeasonBtn.classList.add("hidden");
+    return;
   }
+
+  // There is a season — show groups (and winner if set)
+  overviewContent.innerHTML = `
+    ${intro}
+    <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
+    <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
+    ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
+  `;
+
+  // Buttons visibility for "season exists" state
+  if (isAdmin) {
+    setupSeasonBtn.classList.add("hidden");
+    editTeamsBtn.classList.remove("hidden");
+    setWinnerBtn.classList.remove("hidden");
+    clearSeasonBtn.classList.remove("hidden");
+  } else {
+    // keep admin-only actions hidden for non-admins
+    setupSeasonBtn.classList.add("hidden");
+    editTeamsBtn.classList.add("hidden");
+    setWinnerBtn.classList.add("hidden");
+    clearSeasonBtn.classList.add("hidden");
+  }
+}
 
   // Buttons
   setupSeasonBtn.onclick = () => {
@@ -328,3 +346,4 @@ window.addEventListener("DOMContentLoaded", () => {
   yearDropdown.onchange = renderEverything;
   renderEverything();
 });
+
