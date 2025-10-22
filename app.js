@@ -22,6 +22,14 @@ const db = getDatabase(app);
 
 // =============== GLOBAL VARIABLES ===================
 let isAdmin = false;
+
+// Show admin-only controls if logged in
+if (isAdmin) {
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.classList.remove("hidden");
+  });
+}
+
 let seasons = JSON.parse(localStorage.getItem("seasons")) || {};
 let matches = JSON.parse(localStorage.getItem("matches")) || {};
 let players = JSON.parse(localStorage.getItem("players")) || {};
@@ -758,6 +766,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
