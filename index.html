@@ -63,30 +63,30 @@
   <main id="content">
     <!-- =============== OVERVIEW =============== -->
     <section id="overview" class="tab-content active">
-      <h2 id="seasonTitle">Spring 2025 Season</h2>
+  <h2 id="seasonTitle">Spring 2025 Season</h2>
 
-      <!-- Admin Controls -->
-<div id="adminSeasonControls" class="admin-only hidden">
-  <button id="setupSeasonBtn" class="admin-only hidden">⚙️ Setup New Season</button>
-  <button id="editTeamsBtn" class="admin-only hidden">✏️ Edit Season Teams</button>
-  <button id="setWinnerBtn" class="admin-only hidden">🏆 Set Winner</button>
-  <button id="clearSeasonBtn" class="admin-only hidden">🗑 Clear Season Data</button>
-</div>
+  <!-- Admin Controls -->
+  <div id="adminSeasonControls" class="admin-only hidden">
+    <button id="setupSeasonBtn" class="admin-only hidden">⚙️ Setup New Season</button>
+    <button id="editTeamsBtn" class="admin-only hidden">✏️ Edit Season Teams</button>
+    <button id="setWinnerBtn" class="admin-only hidden">🏆 Set Winner</button>
+    <button id="clearSeasonBtn" class="admin-only hidden">🗑 Clear Season Data</button>
+  </div>
 
-      <div id="overviewContent">
-        <p>
-          Welcome to the Flint Cup! A 10-team tournament split into two groups.
-          Each team competes within and across groups for the top spot.
-        </p>
-      </div>
-    </section>
+  <!-- ✅ This must NOT have admin-only -->
+  <div id="overviewContent">
+    <p>Welcome to the Flint Cup! A 10-team tournament split into two groups...</p>
+  </div>
+</section>
+
 
     <!-- =============== MATCHES =============== -->
     <section id="matches" class="tab-content">
-      <h2>Matches</h2>
-      <div class="match-list"></div>
-      <button id="addMatchBtn" class="admin-only hidden">+ Add Match</button>
-    </section>
+  <h2>Matches</h2>
+  <div class="match-list"></div>
+  <!-- ✅ Only the Add button should be admin-only -->
+  <button id="addMatchBtn" class="admin-only hidden">+ Add Match</button>
+</section>
 
     <!-- =============== STANDINGS =============== -->
     <section id="standings" class="tab-content">
@@ -148,6 +148,7 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
+
 
 
 
