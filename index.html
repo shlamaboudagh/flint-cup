@@ -1,27 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flint Cup – Michigan’s Premier University Soccer Tournament</title>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="flintcup-logo.png">
-
-  <!-- Theme stylesheet -->
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- SEO Meta -->
-  <meta name="description" content="Official Flint Cup – Michigan’s premier university soccer tournament." />
-  <meta name="keywords" content="Flint Cup, Michigan Soccer, UM-Flint, College Soccer, University Tournament" />
-  <meta name="author" content="Flint Cup Organization" />
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
-
-  <!-- Site Script -->
-  <script type="module" src="app.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flint Cup Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+    .tab-button { padding: 10px 15px; border: none; cursor: pointer; background: #ddd; border-radius: 6px; }
+    .tab-button.active { background: #1e3a8a; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .hidden { display: none; }
+    button { margin: 5px; padding: 6px 10px; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { opacity: 0.85; }
+    .admin-only { background: #fde047; }
+    .leaderboard { background: white; padding: 15px; border-radius: 8px; margin-top: 10px; }
+    h2, h3 { color: #1e3a8a; }
+  </style>
 </head>
 <body>
 
@@ -67,9 +63,9 @@
   <section id="standings" class="tab-content">
     <h2>Standings</h2>
     <h3>Group A</h3>
-    <table id="groupA-table"></table>
+    <table id="groupA-table" border="1" cellpadding="5" cellspacing="0"></table>
     <h3>Group B</h3>
-    <table id="groupB-table"></table>
+    <table id="groupB-table" border="1" cellpadding="5" cellspacing="0"></table>
   </section>
 
   <!-- =============== PLAYERS TAB =============== -->
@@ -101,5 +97,3 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
-
