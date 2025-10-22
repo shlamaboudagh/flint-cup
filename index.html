@@ -30,10 +30,7 @@
   <meta name="twitter:image" content="https://flintcup.com/flintcup-logo.png" />
   <meta name="twitter:site" content="@flintcup" />
 
-  <!-- Verification -->
-  <meta name="google-site-verification" content="vq1Q2WKuhUuzwCdRlVqFtRbfoU-Rcgw26eQGkhn4G5U" />
-
-  <!-- Styles & Scripts -->
+  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -44,17 +41,20 @@
   <header class="header">
     <img src="flintcup-logo.png" alt="Flint Cup Logo" class="logo" />
     <h1>Flint Cup</h1>
+
+    <!-- Tabs -->
     <nav>
       <button class="tab-button active" data-tab="overview">Overview</button>
       <button class="tab-button" data-tab="matches">Matches</button>
       <button class="tab-button" data-tab="standings">Standings</button>
-      <button class="tab-button" data-tab="stats">Stats</button>
       <button class="tab-button" data-tab="players">Players</button>
+      <button class="tab-button" data-tab="stats">Stats</button>
       <button class="tab-button" data-tab="schedules">Schedules</button>
       <button class="tab-button" data-tab="alltime">All-Time</button>
     </nav>
   </header>
 
+  <!-- Dropdown for season (must come AFTER header for JS to find it) -->
   <div class="year-selector">
     <label for="yearDropdown">Season:</label>
     <select id="yearDropdown"></select>
@@ -66,7 +66,7 @@
       <h2 id="seasonTitle">Spring 2025 Season</h2>
 
       <!-- Admin Controls -->
-      <div id="adminSeasonControls" class="admin-only hidden">
+      <div class="admin-only hidden">
         <button id="setupSeasonBtn" class="hidden">⚙️ Setup New Season</button>
         <button id="editTeamsBtn" class="hidden">✏️ Edit Season Teams</button>
         <button id="setWinnerBtn" class="hidden">🏆 Set Winner</button>
@@ -103,17 +103,17 @@
       </div>
     </section>
 
-    <!-- Stats -->
-    <section id="stats" class="tab-content">
-      <h2>Player Stats</h2>
-      <div class="stats-board"></div>
-    </section>
-
     <!-- Players -->
     <section id="players" class="tab-content">
       <h2>Players</h2>
       <div class="player-list"></div>
       <button id="addPlayerBtn" class="admin-only hidden">+ Add Player</button>
+    </section>
+
+    <!-- Stats -->
+    <section id="stats" class="tab-content">
+      <h2>Player Stats</h2>
+      <div class="stats-board"></div>
     </section>
 
     <!-- Schedules -->
@@ -131,13 +131,15 @@
     </section>
   </main>
 
-   <footer>
+  <footer>
     <p>© 2025 Flint Cup • Designed with 💙 in Michigan</p>
   </footer>
 
-  <!-- Scripts -->
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js"></script>
+
+  <!-- App Script -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
-
