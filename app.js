@@ -485,7 +485,7 @@ if (schedulesContainer) {
     if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
     if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
   });
-}
+});
 
 
 // =============== ALL-TIME ===================
@@ -546,6 +546,7 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
 
