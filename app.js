@@ -351,7 +351,7 @@ function renderStats() {
 }
 
 // =============== SCHEDULES ===================
-// 🏆 Render Schedules (auto-sorted)
+// 🏆 Render Schedules (auto-sorted and correctly indexed)
 function renderSchedules() {
   const year = currentYear();
   const data = schedules[year] || {};
@@ -376,22 +376,80 @@ function renderSchedules() {
     div.className = "team-schedule";
     div.innerHTML = `<h3>${team}</h3>`;
 
-    // Sort each team’s games chronologically
-    const sorted = [...data[team]].sort(
-      (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
-    );
+    // Sort by date and rebuild array (keeping correct index)
+    const sorted = [...data[team]]
+      .map((g, idx) => ({ ...g, originalIndex: idx }))
+      .sort((a, b) => parseDate(a.date, year) - parseDate(b.date, year));
 
-    sorted.forEach((g, i) => {
+    sorted.forEach(g => {
       div.innerHTML += `
         <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
         ${isAdmin ? `
-          <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
-          <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>
+          <button class="editGameBtn" data-team="${team}" data-i="${g.originalIndex}">✏️</button>
+          <button class="delGameBtn" data-team="${team}" data-i="${g.originalIndex}">❌</button>
         ` : ""}</p>`;
     });
 
     cont.appendChild(div);
   });
+}
+
+// ✏️ Edit Game (updates both teams)
+function editGame(team, i) {
+  const year = currentYear();
+  const g = schedules[year][team][i];
+  if (!g) return alert("Could not find game data.");
+
+  const newOpponent = prompt("Opponent:", g.opponent);
+  const newDate = prompt("Date:", g.date);
+  const newTime = prompt("Time:", g.time);
+  const newHomeAway = prompt("Home/Away:", g.homeaway);
+
+  // Update for this team
+  schedules[year][team][i] = { opponent: newOpponent, date: newDate, time: newTime, homeaway: newHomeAway };
+
+  // Update for the opponent’s schedule too (mirror changes)
+  const oppTeam = newOpponent;
+  const oppList = schedules[year][oppTeam];
+  if (oppList) {
+    const oppIndex = oppList.findIndex(gm => gm.opponent === team && gm.date === g.date && gm.time === g.time);
+    if (oppIndex !== -1) {
+      oppList[oppIndex] = { opponent: team, date: newDate, time: newTime, homeaway: newHomeAway === "Home" ? "Away" : "Home" };
+    }
+  }
+
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`✅ Updated game between ${team} and ${newOpponent}`);
+}
+
+// ❌ Delete Game (removes from both teams)
+function delGame(team, i) {
+  const year = currentYear();
+  const g = schedules[year][team][i];
+  if (!g) return alert("Could not find game data.");
+  if (!confirm(`Delete this game (${team} vs ${g.opponent})?`)) return;
+
+  // Delete from this team
+  schedules[year][team].splice(i, 1);
+  if (schedules[year][team].length === 0) delete schedules[year][team];
+
+  // Delete from opponent’s schedule too
+  const oppTeam = g.opponent;
+  const oppList = schedules[year][oppTeam];
+  if (oppList) {
+    const oppIndex = oppList.findIndex(gm => gm.opponent === team && gm.date === g.date && gm.time === g.time);
+    if (oppIndex !== -1) {
+      oppList.splice(oppIndex, 1);
+      if (oppList.length === 0) delete schedules[year][oppTeam];
+    }
+  }
+
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`🗑 Deleted game between ${team} and ${g.opponent}`);
 }
 
 // 🏟 Add Game (adds to both team schedules)
@@ -418,29 +476,6 @@ function addGame() {
   saveToFirebase();
   renderSchedules();
   alert(`✅ Game added for both ${teamA} and ${teamB}`);
-}
-
-function editGame(team, i) {
-  const year = currentYear();
-  const g = schedules[year][team][i];
-  const opponent = prompt("Opponent:", g.opponent);
-  const date = prompt("Date:", g.date);
-  const time = prompt("Time:", g.time);
-  const homeaway = prompt("Home/Away:", g.homeaway);
-  schedules[year][team][i] = { opponent, date, time, homeaway };
-  localStorage.setItem("schedules", JSON.stringify(schedules));
-  saveToFirebase();
-  renderSchedules();
-}
-
-function delGame(team, i) {
-  const year = currentYear();
-  if (!confirm("Delete this game?")) return;
-  schedules[year][team].splice(i, 1);
-  if (schedules[year][team].length === 0) delete schedules[year][team];
-  localStorage.setItem("schedules", JSON.stringify(schedules));
-  saveToFirebase();
-  renderSchedules();
 }
 
 document.getElementById("addGameBtn").onclick = addGame;
@@ -529,3 +564,4 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
