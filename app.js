@@ -468,7 +468,7 @@ function renderAllTime() {
       ${winners}
     </div>
   `;
-}
+};
 
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
@@ -479,5 +479,6 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
