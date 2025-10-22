@@ -22,6 +22,14 @@ const db = getDatabase(app);
 
 // =============== GLOBAL VARIABLES ===================
 let isAdmin = false;
+
+// Show admin-only controls if logged in
+if (isAdmin) {
+  document.querySelectorAll(".admin-only").forEach(el => {
+    el.classList.remove("hidden");
+  });
+}
+
 let seasons = JSON.parse(localStorage.getItem("seasons")) || {};
 let matches = JSON.parse(localStorage.getItem("matches")) || {};
 let players = JSON.parse(localStorage.getItem("players")) || {};
@@ -245,20 +253,6 @@ document.querySelector(".match-list").onclick = e => {
 };
 
 // =============== STANDINGS ===================
-function calcStandings() {
-  const year = currentYear(), s = seasons[year];
-  if (!s) return { A: [], B: [] };
-  const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
-  (matches[year] || []).forEach(m => {
-    if (!table[m.teamA] || !table[m.teamB]) return;
-    const A = table[m.teamA], B = table[m.teamB];
-    A.MP++; B.MP++; A.GF+=m.scoreA; B.GF+=m.scoreB; A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;} });
-  for (const t in table) table[t].P = 3*table[t].W + table[t].T;
-  return { A: s.groupA.map(t => ({ team:t, ...table[t] })), B: s.groupB.map(t => ({ team:t, ...table[t] })) };
-}
-
 function renderStandings() {
   const { A, B } = calcStandings();
 
@@ -276,7 +270,7 @@ function renderStandings() {
     ${sortTeams(data)
       .map(d => `
         <tr>
-          <td>${d.team}</td>
+          <td><button class="teamLink" data-team="${d.team}">${d.team}</button></td>
           <td>${d.MP}</td>
           <td>${d.W}</td>
           <td>${d.L}</td>
@@ -310,8 +304,11 @@ function renderPlayoffs() {
 
   const { semi1, semi2, final } = data;
 
-  const semiLine = (s, label) =>
-    `${label}: ${s.teamA} ${s.scoreA != null ? s.scoreA : ""}${s.scoreA != null ? "–" : ""}${s.scoreB != null ? s.scoreB : ""} ${s.teamB}`;
+  const semiLine = (s, label) => `
+  ${label}: ${s.teamA}
+  ${s.scoreA !== null && s.scoreB !== null ? `${s.scoreA}-${s.scoreB}` : ""}
+  ${s.teamB}
+`;
 
   div.innerHTML = `
     <h3>Semifinals</h3>
@@ -319,13 +316,20 @@ function renderPlayoffs() {
     <p>${semiLine(semi2, "SF2")} ${isAdmin && (semi2.scoreA == null || semi2.scoreB == null) ? `<button id="semi2ScoreBtn">Enter SF2 Score</button>` : ""}</p>
 
     ${final ? `
-      <h3>Final</h3>
-      <p>${final.teamA} ${final.scoreA != null ? final.scoreA : ""}${final.scoreA != null ? "–" : ""}${final.scoreB != null ? final.scoreB : ""} ${final.teamB}
-      ${isAdmin && (final.scoreA == null || final.scoreB == null) ? `<button id="finalScoreBtn">Enter Final Score</button>` : ""}</p>
-      ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
-    ` : `
-      <div id="finalPlaceholder"></div>
-    `}
+  <h3>Final</h3>
+  <p>
+    ${final.teamA}
+    ${final.scoreA !== null && final.scoreB !== null ? `${final.scoreA}-${final.scoreB}` : ""}
+    ${final.teamB}
+  </p>
+  ${isAdmin && (final.scoreA === null || final.scoreB === null)
+    ? `<button id="finalScoreBtn">Enter Final Score</button>`
+    : ""}
+  ${seasons[year].winner
+    ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>`
+    : ""}
+  <div id="finalPlaceholder"></div>
+` : ""}
   `;
 
   // Show “Set Final Winner” only when a final exists but you still want to set winner manually
@@ -352,7 +356,6 @@ function renderPlayoffs() {
   if (isAdmin) {
     document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
   }
-}
 
 function setFinalWinner() {
   const year = currentYear();
@@ -495,6 +498,30 @@ function renderSchedules() {
     });
 
     cont.appendChild(div);
+  });
+
+  // 🧭 Team link click handler
+  document.querySelectorAll(".teamLink").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const teamName = btn.dataset.team;
+      document.querySelectorAll(".tab-button").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(s => s.classList.remove("active"));
+
+      // Activate schedules tab
+      document.querySelector('[data-tab="schedules"]').classList.add("active");
+      document.getElementById("schedules").classList.add("active");
+
+      renderSchedules();
+
+      const teamDiv = [...document.querySelectorAll(".team-schedule")].find(div =>
+        div.querySelector("h3")?.textContent === teamName
+      );
+      if (teamDiv) {
+        teamDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+        teamDiv.style.boxShadow = "0 0 15px 3px rgba(255,203,5,0.8)";
+        setTimeout(() => (teamDiv.style.boxShadow = ""), 2000);
+      }
+    });
   });
 }
 
@@ -724,13 +751,74 @@ async function renderEverything() {
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
 
-setupSeasonBtn.onclick = setupNewSeason;
-editTeamsBtn.onclick = editTeams;
-clearSeasonBtn.onclick = clearSeason;
-setWinnerBtn.onclick = setWinner;
+// Attach admin button handlers after the page is fully loaded
+window.addEventListener("load", () => {
+  const setupSeasonBtn  = document.getElementById("setupSeasonBtn");
+  const editTeamsBtn    = document.getElementById("editTeamsBtn");
+  const clearSeasonBtn  = document.getElementById("clearSeasonBtn");
+  const setWinnerBtn    = document.getElementById("setWinnerBtn");
+
+  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
+  if (editTeamsBtn)   editTeamsBtn.onclick   = editTeams;
+  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
+  if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
+});
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
+// ================= ADMIN FUNCTION PLACEHOLDERS =================
+
+// Create new season
+function setupNewSeason() {
+  const confirmNew = confirm("⚙️ Are you sure you want to start a new season? This will reset all data for the current year.");
+  if (!confirmNew) return;
+
+  const year = currentYear();
+  seasons[year] = { matches: [], standings: {}, playoffs: {}, winner: null };
+
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  alert(`✅ New season for ${year} created!`);
+  renderEverything();
+}
+
+// Edit teams
+function editTeams() {
+  alert("✏️ Edit Teams feature coming soon!");
+}
+
+// Clear season data
+function clearSeason() {
+  const year = currentYear();
+  if (confirm(`🗑️ Are you sure you want to clear ALL data for ${year}?`)) {
+    delete seasons[year];
+    localStorage.setItem("seasons", JSON.stringify(seasons));
+    alert(`Season ${year} cleared.`);
+    renderEverything();
+  }
+}
+
+// Set season winner
+function setWinner() {
+  const year = currentYear();
+  const winner = prompt("🏆 Enter the final winner team name:");
+  if (winner) {
+    seasons[year].winner = winner;
+    localStorage.setItem("seasons", JSON.stringify(seasons));
+    alert(`🏆 ${winner} is the ${year} champion!`);
+    renderEverything();
+  }
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
