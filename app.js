@@ -293,37 +293,46 @@ function renderStandings() {
 }
 
 // =============== PLAYOFFS ===================
-function generatePlayoffs() {
-  const year = currentYear();
-  const { A, B } = calcStandings();
-  if (!A.length || !B.length) return alert("No standings available yet!");
-
-  // Sort both groups first
-  const sortTeams = arr => arr.sort((a, b) => b.P - a.P || (b.GF - b.GA) - (a.GF - a.GA) || b.GF - a.GF);
-  sortTeams(A);
-  sortTeams(B);
-
-  // Get top 2 from each group
-  const semi1 = { teamA: A[0].team, teamB: B[1].team, scoreA: null, scoreB: null };
-  const semi2 = { teamA: B[0].team, teamB: A[1].team, scoreA: null, scoreB: null };
-
-  seasons[year].playoffs = { semi1, semi2, final: null };
-  localStorage.setItem("seasons", JSON.stringify(seasons));
-  saveToFirebase();
-  renderPlayoffs();
-  alert(`✅ Playoffs generated for ${year}!`);
-}
-
 function renderPlayoffs() {
   const year = currentYear();
   const data = seasons[year]?.playoffs;
   const div = document.getElementById("playoffsContent");
+
+  if (!div) return; // safety
 
   if (!data) {
     div.innerHTML = "<p>No playoffs yet.</p>";
     if (isAdmin) document.getElementById("generatePlayoffsBtn").classList.remove("hidden");
     return;
   }
+
+  document.getElementById("generatePlayoffsBtn").classList.add("hidden");
+
+  const { semi1, semi2, final } = data;
+
+  const semiLine = (s, label) =>
+    `${label}: ${s.teamA} ${s.scoreA != null ? s.scoreA : ""}${s.scoreA != null ? "–" : ""}${s.scoreB != null ? s.scoreB : ""} ${s.teamB}`;
+
+  div.innerHTML = `
+    <h3>Semifinals</h3>
+    <p>${semiLine(semi1, "SF1")} ${isAdmin && (semi1.scoreA == null || semi1.scoreB == null) ? `<button id="semi1ScoreBtn">Enter SF1 Score</button>` : ""}</p>
+    <p>${semiLine(semi2, "SF2")} ${isAdmin && (semi2.scoreA == null || semi2.scoreB == null) ? `<button id="semi2ScoreBtn">Enter SF2 Score</button>` : ""}</p>
+
+    ${final ? `
+      <h3>Final</h3>
+      <p>${final.teamA} ${final.scoreA != null ? final.scoreA : ""}${final.scoreA != null ? "–" : ""}${final.scoreB != null ? final.scoreB : ""} ${final.teamB}
+      ${isAdmin && (final.scoreA == null || final.scoreB == null) ? `<button id="finalScoreBtn">Enter Final Score</button>` : ""}</p>
+      ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
+    ` : `
+      <div id="finalPlaceholder"></div>
+    `}
+  `;
+
+  // Show “Set Final Winner” only when a final exists but you still want to set winner manually
+  const setBtn = document.getElementById("setFinalWinnerBtn");
+  if (isAdmin && data.final) setBtn.classList.remove("hidden");
+  else setBtn.classList.add("hidden");
+}
 
   document.getElementById("generatePlayoffsBtn").classList.add("hidden");
 
@@ -634,6 +643,77 @@ function renderAllTime() {
   `;
 }
 
+// 🏆 Playoff Helper Functions =========================
+function enterSemiScore(which) {
+  const year = currentYear();
+  const po = seasons[year]?.playoffs;
+  if (!po) return alert("No playoffs yet.");
+
+  const key = which === 1 ? "semi1" : "semi2";
+  const s = po[key];
+
+  const a = prompt(`${s.teamA} score:`); if (a === null) return;
+  const b = prompt(`${s.teamB} score:`); if (b === null) return;
+
+  const scoreA = Number(a), scoreB = Number(b);
+  if (Number.isNaN(scoreA) || Number.isNaN(scoreB)) return alert("Enter valid numbers.");
+
+  s.scoreA = scoreA; s.scoreB = scoreB;
+
+  // If both semis have scores, create the Final automatically
+  if (po.semi1.scoreA != null && po.semi1.scoreB != null &&
+      po.semi2.scoreA != null && po.semi2.scoreB != null) {
+
+    const w1 = po.semi1.scoreA > po.semi1.scoreB ? po.semi1.teamA
+             : po.semi1.scoreB > po.semi1.scoreA ? po.semi1.teamB
+             : prompt("SF1 was a tie. Who advanced on PKs?", po.semi1.teamA);
+
+    const w2 = po.semi2.scoreA > po.semi2.scoreB ? po.semi2.teamA
+             : po.semi2.scoreB > po.semi2.scoreA ? po.semi2.teamB
+             : prompt("SF2 was a tie. Who advanced on PKs?", po.semi2.teamA);
+
+    seasons[year].playoffs.final = { teamA: w1, teamB: w2, scoreA: null, scoreB: null };
+    alert(`✅ Final created: ${w1} vs ${w2}`);
+  }
+
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  saveToFirebase();
+  renderPlayoffs();
+}
+
+function enterFinalScore() {
+  const year = currentYear();
+  const fin = seasons[year]?.playoffs?.final;
+  if (!fin) return alert("No final match yet.");
+
+  const a = prompt(`${fin.teamA} score:`); if (a === null) return;
+  const b = prompt(`${fin.teamB} score:`); if (b === null) return;
+
+  const scoreA = Number(a), scoreB = Number(b);
+  if (Number.isNaN(scoreA) || Number.isNaN(scoreB)) return alert("Enter valid numbers.");
+
+  fin.scoreA = scoreA; fin.scoreB = scoreB;
+
+  let winner;
+  if (scoreA > scoreB) winner = fin.teamA;
+  else if (scoreB > scoreA) winner = fin.teamB;
+  else winner = prompt("Final is tied. Who won on PKs?", fin.teamA);
+
+  if (winner) seasons[year].winner = winner;
+
+  localStorage.setItem("seasons", JSON.stringify(seasons));
+  saveToFirebase();
+  renderPlayoffs();
+}
+
+// 🎯 Playoffs dynamic buttons (inside content div)
+document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
+  if (!(e.target instanceof HTMLElement)) return;
+  if (e.target.id === "semi1ScoreBtn") enterSemiScore(1);
+  if (e.target.id === "semi2ScoreBtn") enterSemiScore(2);
+  if (e.target.id === "finalScoreBtn") enterFinalScore();
+});
+
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   await loadFromFirebase();
@@ -651,6 +731,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
