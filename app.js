@@ -150,6 +150,43 @@ function setWinner() {
   alert(`🏆 ${winner} set as ${year} Champion!`);
   renderEverything();
 }
+// =============== OVERVIEW ===================
+function renderOverview() {
+  const year = currentYear();
+  seasonTitle.textContent = `Spring ${year} Season`;
+  const data = seasons[year];
+  overviewContent.innerHTML = "";
+
+  // Hide all admin buttons by default
+  [setupSeasonBtn, editTeamsBtn, clearSeasonBtn, setWinnerBtn].forEach(btn => btn.classList.add("hidden"));
+
+  // If no season yet
+  if (!data) {
+    overviewContent.innerHTML = `<p>No Flint Cup data for ${year} yet.</p>`;
+    if (isAdmin) setupSeasonBtn.classList.remove("hidden");
+    return;
+  }
+
+  // Show groups and winner
+  overviewContent.innerHTML = `
+    <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
+    <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
+    ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
+  `;
+
+  // Show admin options if logged in
+  if (isAdmin) {
+    editTeamsBtn.classList.remove("hidden");
+    setWinnerBtn.classList.remove("hidden");
+    clearSeasonBtn.classList.remove("hidden");
+  }
+}
+
+// Button bindings
+setupSeasonBtn.onclick = setupNewSeason;
+editTeamsBtn.onclick = editTeams;
+clearSeasonBtn.onclick = clearSeason;
+setWinnerBtn.onclick = setWinner;
 
 // =============== MATCHES ===================
 function renderMatches() {
@@ -366,4 +403,15 @@ document.getElementById("schedulesContainer").onclick = e => {
   if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
 };
 
+// =============== INITIAL RENDER ===================
+async function renderEverything() {
+  await loadFromFirebase();
+  renderOverview();
+  renderMatches();
+  renderStandings();
+  renderSchedules();
+}
+
+yearDropdown.onchange = renderEverything;
+window.addEventListener("load", renderEverything);
 
