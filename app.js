@@ -425,27 +425,39 @@ function editGame(team, i) {
   alert(`✅ Updated game between ${team} and ${newOpponent}`);
 }
 
-// ❌ Delete Game (removes from both teams)
 function delGame(team, i) {
   const year = currentYear();
   const g = schedules[year][team][i];
   if (!g) return alert("Could not find game data.");
   if (!confirm(`Delete this game (${team} vs ${g.opponent})?`)) return;
 
-  // Delete from this team
+  const opponent = g.opponent;
+
+  // 🗑 Remove game from this team's list
   schedules[year][team].splice(i, 1);
   if (schedules[year][team].length === 0) delete schedules[year][team];
 
-  // Delete from opponent’s schedule too
-  const oppTeam = g.opponent;
-  const oppList = schedules[year][oppTeam];
+  // 🗑 Remove game from opponent's list (case-insensitive match)
+  const oppList = schedules[year][opponent];
   if (oppList) {
-    const oppIndex = oppList.findIndex(gm => gm.opponent === team && gm.date === g.date && gm.time === g.time);
+    const oppIndex = oppList.findIndex(
+      gm =>
+        gm.opponent.toLowerCase() === team.toLowerCase() &&
+        gm.date.trim().toLowerCase() === g.date.trim().toLowerCase() &&
+        gm.time.trim().toLowerCase() === g.time.trim().toLowerCase()
+    );
     if (oppIndex !== -1) {
       oppList.splice(oppIndex, 1);
-      if (oppList.length === 0) delete schedules[year][oppTeam];
+      if (oppList.length === 0) delete schedules[year][opponent];
     }
   }
+
+  // 🧩 Save updates
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`🗑 Deleted game between ${team} and ${opponent} for both teams`);
+}
 
   localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
@@ -548,6 +560,7 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
 
