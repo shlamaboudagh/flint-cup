@@ -5,102 +5,75 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flint Cup</title>
   <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
 </head>
+
 <body>
-  <header>
-    <div class="top-bar">
-      <label for="yearDropdown">Season:</label>
-      <select id="yearDropdown"></select>
-      <button id="admin-login" class="admin-button">⚙ Admin</button>
-    </div>
+  <!-- Admin login button -->
+  <button id="admin-login" class="admin-btn">🛠 Admin</button>
 
+  <header class="header">
+    <img src="flintcup-logo.png" alt="Flint Cup Logo" class="logo" />
     <h1>Flint Cup</h1>
-
-    <nav class="tab-bar">
+    <nav>
       <button class="tab-button active" data-tab="overview">Overview</button>
       <button class="tab-button" data-tab="matches">Matches</button>
       <button class="tab-button" data-tab="standings">Standings</button>
-      <button class="tab-button" data-tab="players">Players</button>
       <button class="tab-button" data-tab="stats">Stats</button>
-      <button class="tab-button" data-tab="schedules">Schedules</button>
+      <button class="tab-button" data-tab="players">Players</button>
       <button class="tab-button" data-tab="alltime">All-Time</button>
     </nav>
   </header>
 
-  <main>
-    <!-- =============== OVERVIEW TAB =============== -->
+  <!-- Year Selector -->
+  <div class="year-selector">
+    <label for="yearDropdown">Season:</label>
+    <select id="yearDropdown"></select>
+  </div>
+
+  <main id="content">
+    <!-- Overview Section -->
     <section id="overview" class="tab-content active">
-      <h2 id="seasonTitle">Spring 2025 Season</h2>
-      <div id="overviewContent">
-        <p>Welcome to the Flint Cup!</p>
-      </div>
-
-      <div class="admin-controls">
-        <button id="setupSeasonBtn" class="admin-only hidden">Setup New Season</button>
-        <button id="editTeamsBtn" class="admin-only hidden">Edit Teams</button>
-        <button id="setWinnerBtn" class="admin-only hidden">Set Winner</button>
-        <button id="clearSeasonBtn" class="admin-only hidden">Clear Data</button>
-      </div>
+      <h2>Spring 2025 Season</h2>
+      <p>
+        Welcome to the Flint Cup! A 10-team tournament with two groups, A and B. Each team faces
+        every other team, battling for the top spot in Michigan’s premier university soccer competition.
+      </p>
     </section>
 
-    <!-- =============== MATCHES TAB =============== -->
+    <!-- Matches Section -->
     <section id="matches" class="tab-content">
-      <h2>Match Results</h2>
-      <div class="admin-controls">
-        <button id="addMatchBtn" class="admin-only hidden">Add Match</button>
-      </div>
-      <div class="match-list"></div>
+      <h2>Matches</h2>
+      <p>Match schedule and results will appear here soon.</p>
     </section>
 
-    <!-- =============== STANDINGS TAB =============== -->
+    <!-- Standings Section -->
     <section id="standings" class="tab-content">
       <h2>Standings</h2>
-      <h3>Group A</h3>
-      <table id="groupA-table" class="standings-table"></table>
-      <h3>Group B</h3>
-      <table id="groupB-table" class="standings-table"></table>
+      <p>Group A and Group B standings will update weekly.</p>
     </section>
 
-    <!-- =============== PLAYERS TAB =============== -->
-    <section id="players" class="tab-content">
-      <h2>Player Stats</h2>
-      <div class="admin-controls">
-        <button id="addPlayerBtn" class="admin-only hidden">Add Player</button>
-      </div>
-      <div class="player-list"></div>
-    </section>
-
-    <!-- =============== STATS TAB =============== -->
+    <!-- Stats Section -->
     <section id="stats" class="tab-content">
-      <h2>Season Leaders</h2>
-      <div class="stats-board"></div>
+      <h2>Player Stats</h2>
+      <p>Goals, assists, and card counts for all players.</p>
     </section>
 
-    <!-- =============== SCHEDULES TAB =============== -->
-    <section id="schedules" class="tab-content">
-      <h2>Team Schedules</h2>
-      <div class="admin-controls">
-        <button id="addGameBtn" class="admin-only hidden">Add Game</button>
-      </div>
-      <div id="schedulesContainer"></div>
+    <!-- Players Section -->
+    <section id="players" class="tab-content">
+      <h2>Players</h2>
+      <p>Team rosters will be listed here once finalized.</p>
     </section>
 
-    <!-- =============== ALL-TIME TAB =============== -->
+    <!-- All-Time Records Section -->
     <section id="alltime" class="tab-content">
-      <h2>All-Time Records</h2>
-      <div class="alltime-list"></div>
+      <h2>🏆 All-Time Flint Cup Records</h2>
+      <p>Lifetime totals of goals, assists, and cards across all seasons.</p>
     </section>
   </main>
 
   <footer>
-    <p>© 2025 Flint Cup • Designed in Michigan</p>
+    <p>© 2025 Flint Cup • Designed with 💙 in Michigan</p>
   </footer>
-
-  <!-- ✅ FIX: Script runs *after* everything loads -->
-  <script type="module">
-    window.addEventListener("DOMContentLoaded", () => {
-      import("./app.js");
-    });
-  </script>
 </body>
 </html>
