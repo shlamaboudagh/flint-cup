@@ -85,9 +85,20 @@ document.getElementById("admin-login").addEventListener("click", () => {
   if (input === "flintadmin") {
     isAdmin = true;
     alert("✅ Admin access granted!");
+    
+    // 🔓 Show all admin-only elements
     document.querySelectorAll(".admin-only").forEach(e => e.classList.remove("hidden"));
+
+    // 🔓 Also unhide the entire adminSeasonControls wrapper
+    const adminControls = document.getElementById("adminSeasonControls");
+    if (adminControls) adminControls.classList.remove("hidden");
+
+    // 🧩 Remove the login button itself
     document.getElementById("admin-login").remove();
+
+    // 🔁 Refresh and attach buttons
     renderEverything();
+    attachAdminButtons(); // <-- important to reattach click handlers
   } else {
     alert("❌ Incorrect code.");
   }
@@ -806,6 +817,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
