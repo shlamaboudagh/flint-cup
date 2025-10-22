@@ -1,8 +1,4 @@
 // ================= FLINT CUP (Firebase + Local Sync Final Version) ===================
-// ================= FLINT CUP (Firebase + Local Sync Final Version) ===================
-
-// ✅ Run after DOM loads
-window.addEventListener("DOMContentLoaded", () => {
 
 // ✅ Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -342,6 +338,6 @@ async function renderEverything(){
 }
 yearDropdown.onchange=renderEverything;
 window.addEventListener("load",renderEverything);
-}); // end of DOMContentLoaded
+
 
 
