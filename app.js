@@ -1,6 +1,5 @@
 // ================= FLINT CUP (Firebase + Local Sync Final Version) ===================
 
-// ✅ Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
@@ -66,7 +65,6 @@ async function loadFromFirebase() {
     console.error("⚠️ Firebase load failed:", err);
   }
 }
-
 function saveToFirebase() {
   set(ref(db, "flintcup"), { seasons, matches, players, schedules })
     .catch(err => console.error("⚠️ Firebase save failed:", err));
@@ -84,7 +82,7 @@ document.getElementById("admin-login").addEventListener("click", () => {
   } else alert("❌ Incorrect code.");
 });
 
-// =============== TAB NAVIGATION ===================
+// =============== TABS ===================
 const tabs = document.querySelectorAll(".tab-button");
 const sections = document.querySelectorAll(".tab-content");
 tabs.forEach(tab => {
@@ -93,7 +91,6 @@ tabs.forEach(tab => {
     sections.forEach(s => s.classList.remove("active"));
     tab.classList.add("active");
     document.getElementById(tab.dataset.tab).classList.add("active");
-
     if (tab.dataset.tab === "players") renderPlayers();
     if (tab.dataset.tab === "stats") renderStats();
     if (tab.dataset.tab === "schedules") renderSchedules();
@@ -178,7 +175,56 @@ setWinnerBtn.onclick = () => {
   renderEverything();
 };
 
-// =============== MATCHES ===================
+// =============== MATCHES + STANDINGS ===================
+function calcStandings() {
+  const year = currentYear(), s = seasons[year];
+  if (!s) return { A: [], B: [] };
+  const table = {};
+  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
+  (matches[year] || []).forEach(m => {
+    const A = table[m.teamA], B = table[m.teamB];
+    if (!A || !B) return;
+    A.MP++; B.MP++;
+    A.GF+=m.scoreA; B.GF+=m.scoreB;
+    A.GA+=m.scoreB; B.GA+=m.scoreA;
+    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;}
+  });
+  Object.values(table).forEach(t => t.P = 3*t.W + t.T);
+  const sort = a => [...a].sort((x,y)=>y.P-x.P || (y.GF-y.GA)-(x.GF-x.GA));
+  return { A: sort(s.groupA.map(t=>({team:t,...table[t]}))), B: sort(s.groupB.map(t=>({team:t,...table[t]}))) };
+}
+
+function renderStandings() {
+  const { A, B } = calcStandings();
+  const makeTable = d => `
+    <tr><th>Team</th><th>MP</th><th>W</th><th>L</th><th>T</th><th>GF</th><th>GA</th><th>P</th></tr>
+    ${d.map(x=>`
+      <tr>
+        <td class="team-link" data-team="${x.team}">${x.team}</td>
+        <td>${x.MP}</td><td>${x.W}</td><td>${x.L}</td><td>${x.T}</td><td>${x.GF}</td><td>${x.GA}</td><td>${x.P}</td>
+      </tr>`).join("")}`;
+  document.getElementById("groupA-table").innerHTML = makeTable(A);
+  document.getElementById("groupB-table").innerHTML = makeTable(B);
+
+  // clickable team names
+  document.querySelectorAll(".team-link").forEach(td => {
+    td.addEventListener("click", () => {
+      const team = td.dataset.team;
+      tabs.forEach(t => t.classList.remove("active"));
+      sections.forEach(s => s.classList.remove("active"));
+      document.querySelector('[data-tab="schedules"]').classList.add("active");
+      document.getElementById("schedules").classList.add("active");
+      renderSchedules(team);
+      setTimeout(() => {
+        const el = Array.from(document.querySelectorAll(".team-schedule h3"))
+          .find(h3 => h3.textContent.toLowerCase() === team.toLowerCase());
+        el?.scrollIntoView({ behavior: "smooth" });
+      }, 200);
+    });
+  });
+}
+
+// =============== MATCH CONTROLS ===================
 function renderMatches() {
   const list = document.querySelector(".match-list");
   const year = currentYear();
@@ -202,7 +248,6 @@ document.getElementById("addMatchBtn").onclick = () => {
   renderMatches(); renderStandings();
 };
 
-// Edit/Delete match
 document.querySelector(".match-list").onclick = e => {
   const btn = e.target, year = currentYear();
   if (btn.classList.contains("editMatchBtn")) {
@@ -221,121 +266,110 @@ document.querySelector(".match-list").onclick = e => {
   renderMatches(); renderStandings();
 };
 
-// =============== STANDINGS ===================
-function calcStandings() {
-  const year = currentYear(), s = seasons[year];
-  if (!s) return { A: [], B: [] };
-  const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
-  (matches[year] || []).forEach(m => {
-    const A = table[m.teamA], B = table[m.teamB];
-    if (!A || !B) return;
-    A.MP++; B.MP++;
-    A.GF+=m.scoreA; B.GF+=m.scoreB;
-    A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;}
-  });
-  Object.values(table).forEach(t => t.P = 3*t.W + t.T);
-  return { A: s.groupA.map(t => ({team:t,...table[t]})), B: s.groupB.map(t => ({team:t,...table[t]})) };
+// =============== SCHEDULES ===================
+function parseDate(str, year) {
+  const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
+  const d = new Date(`${clean} ${year}`);
+  return isNaN(d) ? new Date(0) : d;
 }
 
-function renderStandings() {
-  const { A, B } = calcStandings();
-  const makeTable = d => `
-    <tr><th>Team</th><th>MP</th><th>W</th><th>L</th><th>T</th><th>GF</th><th>GA</th><th>P</th></tr>
-    ${d.map(x=>`
-      <tr>
-        <td class="team-link" data-team="${x.team}">${x.team}</td>
-        <td>${x.MP}</td><td>${x.W}</td><td>${x.L}</td><td>${x.T}</td><td>${x.GF}</td><td>${x.GA}</td><td>${x.P}</td>
-      </tr>`).join("")}`;
-  document.getElementById("groupA-table").innerHTML = makeTable(A);
-  document.getElementById("groupB-table").innerHTML = makeTable(B);
-}
-
-// =============== PLAYERS ===================
-function renderPlayers() {
-  const list = document.querySelector(".player-list");
+function renderSchedules(focusTeam = "") {
   const year = currentYear();
-  const arr = players[year] || [];
-  list.innerHTML = arr.map((p,i)=>`
-    <p><strong>${p.name}</strong> (${p.team}) — ⚽ ${p.goals} | 🎯 ${p.assists} | 🟨 ${p.yellow} | 🟥 ${p.red}
-    ${isAdmin?`<button class="editPlayerBtn" data-i="${i}">✏️</button><button class="delPlayerBtn" data-i="${i}">❌</button>`:""}</p>`
-  ).join("")||"<p>No players yet.</p>";
-}
+  const data = schedules[year] || {};
+  const cont = document.getElementById("schedulesContainer");
+  cont.innerHTML = "";
 
-document.getElementById("addPlayerBtn").onclick = ()=>{
-  const year=currentYear();
-  const name=prompt("Name:"),team=prompt("Team:"),goals=+prompt("Goals:")||0,assists=+prompt("Assists:")||0,yellow=+prompt("Yellow:")||0,red=+prompt("Red:")||0;
-  if(!name||!team)return;
-  players[year]=players[year]||[];
-  players[year].push({name,team,goals,assists,yellow,red});
-  saveToFirebase();renderPlayers();renderStats();renderAllTime();
-};
-
-// edit/delete
-document.querySelector(".player-list").onclick=e=>{
-  const year=currentYear(),btn=e.target;
-  if(btn.classList.contains("editPlayerBtn")){
-    const i=btn.dataset.i;const p=players[year][i];
-    p.name=prompt("Name:",p.name);
-    p.team=prompt("Team:",p.team);
-    p.goals=+prompt("Goals:",p.goals);
-    p.assists=+prompt("Assists:",p.assists);
-    p.yellow=+prompt("Yellow:",p.yellow);
-    p.red=+prompt("Red:",p.red);
+  if (!Object.keys(data).length) {
+    cont.innerHTML = "<p>No schedules yet.</p>";
+    return;
   }
-  if(btn.classList.contains("delPlayerBtn")){
-    const i=btn.dataset.i;
-    if(!confirm("Delete player?"))return;
-    players[year].splice(i,1);
-  }
-  saveToFirebase();renderPlayers();renderStats();renderAllTime();
-};
 
-// =============== STATS + ALL-TIME ===================
-function renderStats(){
-  const d=document.querySelector(".stats-board"),year=currentYear(),arr=players[year]||[];
-  if(!arr.length){d.innerHTML="<p>No player stats yet.</p>";return;}
-  const getTop=k=>{const m=Math.max(...arr.map(p=>p[k]||0)),L=arr.filter(p=>p[k]===m&&m>0);return{m,L}};
-  const b=(t,g,e)=>g.m?`${e} ${t}: <strong>${g.L.map(p=>p.name).join(", ")}</strong> — ${g.m}`:`${e} ${t}: No record yet.`;
-  d.innerHTML=`<div class="leaderboard"><h3>🏆 Season Leaders (${year})</h3>
-  <p>${b("Top Scorer",getTop("goals"),"⚽")}</p>
-  <p>${b("Top Assister",getTop("assists"),"🎯")}</p>
-  <p>${b("Most Yellow Cards",getTop("yellow"),"🟨")}</p>
-  <p>${b("Most Red Cards",getTop("red"),"🟥")}</p></div>`;
-}
+  Object.keys(data).forEach(team => {
+    const div = document.createElement("div");
+    div.className = "team-schedule";
+    div.innerHTML = `<h3>${team}</h3>`;
 
-function renderAllTime(){
-  const list=document.querySelector(".alltime-list");list.innerHTML="";
-  let c={};
-  for(const y in players)(players[y]||[]).forEach(p=>{
-    if(!c[p.name])c[p.name]={...p,totalGoals:p.goals,totalAssists:p.assists,totalYellow:p.yellow,totalRed:p.red};
-    else{c[p.name].totalGoals+=p.goals;c[p.name].totalAssists+=p.assists;c[p.name].totalYellow+=p.yellow;c[p.name].totalRed+=p.red;}
+    const sorted = [...data[team]].sort(
+      (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
+    );
+
+    sorted.forEach((g, i) => {
+      div.innerHTML += `
+        <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
+        ${isAdmin ? `
+          <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
+          <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>` : ""}
+        </p>`;
+    });
+
+    cont.appendChild(div);
   });
-  const arr=Object.values(c);
-  if(!arr.length){list.innerHTML="<p>No all-time data yet.</p>";return;}
-  const g=k=>{const m=Math.max(...arr.map(p=>p[k]||0)),L=arr.filter(p=>p[k]===m&&m>0);return{m,L}};
-  const b=(t,i,k)=>{const t2=g(k);return t2.m?`<h4>${i} ${t}</h4>${t2.L.map(p=>`<p><strong>${p.name}</strong> (${p.team}) — ${t2.m}</p>`).join("")}`:`<h4>${i} ${t}</h4><p>No records yet.</p>`};
-  const w=Object.entries(seasons).filter(([_,s])=>s.winner).map(([y,s])=>`<p><strong>${y}:</strong> ${s.winner}</p>`).join("")||"<p>No winners recorded yet.</p>";
-  list.innerHTML=`<div class="leaderboard"><h3>🏆 All-Time Flint Cup Records</h3>
-  ${b("Top Scorers","⚽","totalGoals")}
-  ${b("Top Assisters","🎯","totalAssists")}
-  ${b("Most Yellow Cards","🟨","totalYellow")}
-  ${b("Most Red Cards","🟥","totalRed")}
-  <h3 style="margin-top:25px;">🏅 Season Winners</h3>${w}</div>`;
+
+  if (focusTeam) {
+    setTimeout(() => {
+      const el = Array.from(document.querySelectorAll(".team-schedule h3"))
+        .find(h3 => h3.textContent.toLowerCase() === focusTeam.toLowerCase());
+      el?.scrollIntoView({ behavior: "smooth" });
+    }, 200);
+  }
 }
+
+// ➕ Add Game (adds to both teams + sorted)
+document.getElementById("addGameBtn").onclick = () => {
+  const year = currentYear();
+  const teamA = prompt("Home Team:");
+  const teamB = prompt("Away Team:");
+  const date = prompt("Date (ex: March 14th):");
+  const time = prompt("Time (ex: 3 PM):");
+  if (!teamA || !teamB || !date || !time) return alert("All fields required.");
+
+  schedules[year] = schedules[year] || {};
+  schedules[year][teamA] = schedules[year][teamA] || [];
+  schedules[year][teamB] = schedules[year][teamB] || [];
+
+  schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
+  schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
+
+  // sort both schedules
+  const sortByDate = arr => arr.sort((a, b) => parseDate(a.date, year) - parseDate(b.date, year));
+  schedules[year][teamA] = sortByDate(schedules[year][teamA]);
+  schedules[year][teamB] = sortByDate(schedules[year][teamB]);
+
+  saveToFirebase();
+  renderSchedules();
+  alert(`✅ Game added for both ${teamA} and ${teamB}.`);
+};
+
+// ✏️ Edit / ❌ Delete Game
+document.getElementById("schedulesContainer").onclick = e => {
+  const btn = e.target;
+  const year = currentYear();
+  if (btn.classList.contains("editGameBtn")) {
+    const team = btn.dataset.team;
+    const i = btn.dataset.i;
+    const g = schedules[year][team][i];
+    const newDate = prompt("Date:", g.date);
+    const newTime = prompt("Time:", g.time);
+    const newHomeAway = prompt("Home/Away:", g.homeaway);
+    schedules[year][team][i] = { ...g, date: newDate, time: newTime, homeaway: newHomeAway };
+  }
+  if (btn.classList.contains("delGameBtn")) {
+    const team = btn.dataset.team;
+    const i = btn.dataset.i;
+    if (!confirm("Delete this game?")) return;
+    schedules[year][team].splice(i, 1);
+  }
+  saveToFirebase();
+  renderSchedules();
+};
 
 // =============== INITIAL RENDER ===================
-async function renderEverything(){
+async function renderEverything() {
   await loadFromFirebase();
   renderOverview();
   renderMatches();
   renderStandings();
   renderSchedules();
-  renderPlayers();
-  renderStats();
-  renderAllTime();
 }
-yearDropdown.onchange=renderEverything;
-window.addEventListener("load",renderEverything);
-
+yearDropdown.onchange = renderEverything;
+window.addEventListener("load", renderEverything);
