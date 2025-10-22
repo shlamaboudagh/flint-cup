@@ -414,27 +414,79 @@ function addGame() {
   alert(`✅ Game added for both ${teamA} and ${teamB}`);
 }
 
-// ✅ Schedules Button Event Listeners
+// ✏️ Edit Game (updates both teams)
+function editGame(team, i) {
+  const year = currentYear();
+  const g = schedules[year][team][i];
+  if (!g) return alert("Could not find game data.");
+
+  const newOpponent = prompt("Opponent:", g.opponent);
+  const newDate = prompt("Date:", g.date);
+  const newTime = prompt("Time:", g.time);
+  const newHomeAway = prompt("Home/Away:", g.homeaway);
+
+  // Update for this team
+  schedules[year][team][i] = { opponent: newOpponent, date: newDate, time: newTime, homeaway: newHomeAway };
+
+  // Update for opponent
+  const oppTeam = g.opponent;
+  const oppList = schedules[year][oppTeam];
+  if (oppList) {
+    const oppIndex = oppList.findIndex(x => x.opponent === team && x.date === g.date && x.time === g.time);
+    if (oppIndex !== -1) {
+      oppList[oppIndex] = { opponent: team, date: newDate, time: newTime, homeaway: newHomeAway === "Home" ? "Away" : "Home" };
+    }
+  }
+
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`✅ Updated game between ${team} and ${newOpponent}`);
+}
+
+// ❌ Delete Game (removes from both teams)
+function delGame(team, i) {
+  const year = currentYear();
+  const g = schedules[year][team][i];
+  if (!g) return alert("Could not find game data.");
+  if (!confirm(`Delete this game (${team} vs ${g.opponent})?`)) return;
+
+  // Delete from team
+  schedules[year][team].splice(i, 1);
+  if (schedules[year][team].length === 0) delete schedules[year][team];
+
+  // Delete from opponent’s schedule too
+  const oppTeam = g.opponent;
+  const oppList = schedules[year][oppTeam];
+  if (oppList) {
+    const oppIndex = oppList.findIndex(x => x.opponent === team && x.date === g.date && x.time === g.time);
+    if (oppIndex !== -1) {
+      oppList.splice(oppIndex, 1);
+      if (oppList.length === 0) delete schedules[year][oppTeam];
+    }
+  }
+
+  localStorage.setItem("schedules", JSON.stringify(schedules));
+  saveToFirebase();
+  renderSchedules();
+  alert(`🗑 Deleted game between ${team} and ${g.opponent}`);
+}
+
+// ✅ Schedules Button Event Listeners (moved below all function definitions)
 const addGameBtn = document.getElementById("addGameBtn");
 const schedulesContainer = document.getElementById("schedulesContainer");
 
-// Add Game button
 if (addGameBtn) {
   addGameBtn.addEventListener("click", addGame);
 }
-
-// Edit/Delete buttons inside schedule list
 if (schedulesContainer) {
   schedulesContainer.addEventListener("click", e => {
     const btn = e.target;
-    if (btn.classList.contains("editGameBtn")) {
-      editGame(btn.dataset.team, btn.dataset.i);
-    }
-    if (btn.classList.contains("delGameBtn")) {
-      delGame(btn.dataset.team, btn.dataset.i);
-    }
+    if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
+    if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
   });
-}
+});
+
 
 // =============== ALL-TIME ===================
 function renderAllTime() {
@@ -494,6 +546,7 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
 
