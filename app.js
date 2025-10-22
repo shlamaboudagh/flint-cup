@@ -1,4 +1,4 @@
-// ================= FLINT CUP (Firebase + Local Sync Final Version) ===================
+// ================= FLINT CUP (Firebase + Local Sync + Schedules + Sorting) ===================
 
 // ✅ Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -135,7 +135,7 @@ window.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
-  // Setup buttons
+  // Buttons
   setupSeasonBtn.onclick = () => {
     const year = currentYear();
     if (seasons[year]) return alert(`${year} already exists.`);
@@ -179,10 +179,150 @@ window.addEventListener("DOMContentLoaded", () => {
     renderEverything();
   };
 
+  // =============== MATCHES ===================
+  function renderMatches() {
+    const list = document.querySelector(".match-list");
+    const year = currentYear();
+    const arr = matches[year] || [];
+    list.innerHTML = arr.map((m, i) => `
+      <p><strong>${m.teamA}</strong> ${m.scoreA}-${m.scoreB} <strong>${m.teamB}</strong>
+      ${isAdmin ? `
+        <button class="editMatchBtn" data-i="${i}">✏️</button>
+        <button class="delMatchBtn" data-i="${i}">❌</button>` : ""}
+      </p>`).join("") || "<p>No matches yet.</p>";
+  }
+
+  document.getElementById("addMatchBtn").onclick = () => {
+    const year = currentYear();
+    const teamA = prompt("Team A:"), teamB = prompt("Team B:");
+    const scoreA = +prompt(`${teamA} score:`), scoreB = +prompt(`${teamB} score:`);
+    if (!teamA || !teamB) return;
+    matches[year] = matches[year] || [];
+    matches[year].push({ teamA, teamB, scoreA, scoreB });
+    saveToFirebase();
+    renderMatches(); renderStandings();
+  };
+
+  // Edit/Delete match
+  document.querySelector(".match-list").onclick = e => {
+    const btn = e.target, year = currentYear();
+    if (btn.classList.contains("editMatchBtn")) {
+      const i = btn.dataset.i;
+      const m = matches[year][i];
+      const scoreA = +prompt(`${m.teamA} score:`, m.scoreA);
+      const scoreB = +prompt(`${m.teamB} score:`, m.scoreB);
+      matches[year][i] = { ...m, scoreA, scoreB };
+    }
+    if (btn.classList.contains("delMatchBtn")) {
+      const i = btn.dataset.i;
+      if (!confirm("Delete this match?")) return;
+      matches[year].splice(i, 1);
+    }
+    saveToFirebase();
+    renderMatches(); renderStandings();
+  };
+
+  // =============== STANDINGS (Auto Sort by Points) ===================
+  function calcStandings() {
+    const year = currentYear(), s = seasons[year];
+    if (!s) return { A: [], B: [] };
+    const table = {};
+    [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
+    (matches[year] || []).forEach(m => {
+      const A = table[m.teamA], B = table[m.teamB];
+      if (!A || !B) return;
+      A.MP++; B.MP++;
+      A.GF+=m.scoreA; B.GF+=m.scoreB;
+      A.GA+=m.scoreB; B.GA+=m.scoreA;
+      if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;}
+    });
+    Object.values(table).forEach(t => t.P = 3*t.W + t.T);
+    const sortTeams = (arr) => arr.map(t => ({ team:t, ...table[t] })).sort((a,b)=>b.P - a.P);
+    return { A: sortTeams(s.groupA), B: sortTeams(s.groupB) };
+  }
+
+  function renderStandings() {
+    const { A, B } = calcStandings();
+    const makeTable = d => `
+      <tr><th>Team</th><th>MP</th><th>W</th><th>L</th><th>T</th><th>GF</th><th>GA</th><th>P</th></tr>
+      ${d.map(x=>`
+        <tr>
+          <td class="team-link" data-team="${x.team}">${x.team}</td>
+          <td>${x.MP}</td><td>${x.W}</td><td>${x.L}</td><td>${x.T}</td><td>${x.GF}</td><td>${x.GA}</td><td>${x.P}</td>
+        </tr>`).join("")}`;
+    document.getElementById("groupA-table").innerHTML = makeTable(A);
+    document.getElementById("groupB-table").innerHTML = makeTable(B);
+  }
+
+  // =============== SCHEDULES (Add Game to Both + Sort by Date) ===================
+  function parseDate(str, year) {
+    const clean = str.replace(/(\d+)(st|nd|rd|th)/, "$1");
+    const d = new Date(`${clean} ${year}`);
+    return isNaN(d) ? new Date(0) : d;
+  }
+
+  function renderSchedules() {
+    const year = currentYear();
+    const data = schedules[year] || {};
+    const cont = document.getElementById("schedulesContainer");
+    cont.innerHTML = "";
+
+    if (!Object.keys(data).length) {
+      cont.innerHTML = "<p>No schedules yet.</p>";
+      return;
+    }
+
+    Object.keys(data).forEach(team => {
+      const div = document.createElement("div");
+      div.className = "team-schedule";
+      div.innerHTML = `<h3>${team}</h3>`;
+      const sorted = [...data[team]].sort(
+        (a, b) => parseDate(a.date, year) - parseDate(b.date, year)
+      );
+      sorted.forEach((g, i) => {
+        div.innerHTML += `
+          <p>${g.date} • ${g.time} • vs ${g.opponent} (${g.homeaway})
+          ${isAdmin ? `
+            <button class="editGameBtn" data-team="${team}" data-i="${i}">✏️</button>
+            <button class="delGameBtn" data-team="${team}" data-i="${i}">❌</button>` : ""}
+          </p>`;
+      });
+      cont.appendChild(div);
+    });
+  }
+
+  document.getElementById("addGameBtn").onclick = () => {
+    const year = currentYear();
+    const teamA = prompt("Home Team:");
+    const teamB = prompt("Away Team:");
+    const date = prompt("Date (e.g., March 14th):");
+    const time = prompt("Time (e.g., 3 PM):");
+    if (!teamA || !teamB || !date || !time) return alert("All fields required.");
+
+    schedules[year] = schedules[year] || {};
+    schedules[year][teamA] = schedules[year][teamA] || [];
+    schedules[year][teamB] = schedules[year][teamB] || [];
+
+    schedules[year][teamA].push({ opponent: teamB, date, time, homeaway: "Home" });
+    schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
+
+    // Sort by date for both
+    const sorter = (a,b)=>parseDate(a.date,year)-parseDate(b.date,year);
+    schedules[year][teamA].sort(sorter);
+    schedules[year][teamB].sort(sorter);
+
+    saveToFirebase();
+    renderSchedules();
+    alert(`✅ Game added for both ${teamA} and ${teamB}.`);
+  };
+
   // =============== INITIAL RENDER ===================
   async function renderEverything() {
     await loadFromFirebase();
     renderOverview();
+    renderMatches();
+    renderStandings();
+    renderSchedules();
   }
 
   yearDropdown.onchange = renderEverything;
