@@ -245,20 +245,6 @@ document.querySelector(".match-list").onclick = e => {
 };
 
 // =============== STANDINGS ===================
-function calcStandings() {
-  const year = currentYear(), s = seasons[year];
-  if (!s) return { A: [], B: [] };
-  const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0,W:0,L:0,T:0,GF:0,GA:0,P:0 });
-  (matches[year] || []).forEach(m => {
-    if (!table[m.teamA] || !table[m.teamB]) return;
-    const A = table[m.teamA], B = table[m.teamB];
-    A.MP++; B.MP++; A.GF+=m.scoreA; B.GF+=m.scoreB; A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;} });
-  for (const t in table) table[t].P = 3*table[t].W + table[t].T;
-  return { A: s.groupA.map(t => ({ team:t, ...table[t] })), B: s.groupB.map(t => ({ team:t, ...table[t] })) };
-}
-
 function renderStandings() {
   const { A, B } = calcStandings();
 
@@ -755,6 +741,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
