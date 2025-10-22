@@ -338,7 +338,6 @@ function renderPlayoffs() {
   if (isAdmin) {
     document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
   }
-}
 
 function setFinalWinner() {
   const year = currentYear();
@@ -741,6 +740,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
