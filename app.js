@@ -856,39 +856,37 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
 
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
-  await loadFromFirebase();
+  console.log("🔄 Rendering everything...");
+  await loadFromFirebase(); // wait until Firebase is done
+
+  // Render all public-facing tabs
   renderOverview();
   renderMatches();
   renderStandings();
+  renderStats();
+  renderPlayers();
+  renderSchedules();
+  renderAllTime();
+  renderPlayoffs();
+
+  console.log("✅ All sections rendered.");
 }
 
-// Re-render everything when year is changed
+// 🧭 Re-render everything when year is changed
 yearDropdown.addEventListener("change", () => {
-  localStorage.setItem("selectedYear", yearDropdown.value); // 👈 add .value
+  localStorage.setItem("selectedYear", yearDropdown.value);
   renderEverything();
 });
 
-// Initial render when the page first loads
-window.addEventListener("load", renderEverything);
+// 🚀 Render everything once when page first loads
+window.addEventListener("load", async () => {
+  await renderEverything(); // wait until data is ready
 
-// Attach admin button handlers after the page is fully loaded
-window.addEventListener("load", () => {
-  const setupSeasonBtn = document.getElementById("setupSeasonBtn");
-  const editTeamsBtn = document.getElementById("editTeamsBtn");
-  const clearSeasonBtn = document.getElementById("clearSeasonBtn");
-  const setWinnerBtn = document.getElementById("setWinnerBtn");
-
-  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
-  if (editTeamsBtn) editTeamsBtn.onclick = editTeams;
-  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
-  if (setWinnerBtn) setWinnerBtn.onclick = setWinner;
+  // Attach all admin-related buttons afterward
+  attachAdminButtons();
 
   const addPlayerBtn = document.getElementById("addPlayerBtn");
-  console.log("✅ addPlayerBtn found:", addPlayerBtn);
-  if (addPlayerBtn) {
-    console.log("🔗 Connecting Add Player Button...");
-    addPlayerBtn.onclick = addPlayer;
-  }
+  if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
 
   const playerList = document.querySelector(".player-list");
   if (playerList) {
@@ -897,9 +895,15 @@ window.addEventListener("load", () => {
       if (e.target.classList.contains("delPlayerBtn")) delPlayer(e.target.dataset.i);
     };
   }
+
+   const genBtn = document.getElementById("generatePlayoffsBtn");
+  const setWinnerBtn = document.getElementById("setFinalWinnerBtn");
+  if (genBtn) genBtn.onclick = generatePlayoffs;
+  if (setWinnerBtn) setWinnerBtn.onclick = setFinalWinner;
 }); // 👈 this one closes the window.load function!
 
 // ✅ these two lines MUST be outside that block
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
