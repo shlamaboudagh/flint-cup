@@ -743,13 +743,22 @@ async function renderEverything() {
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
 
-setupSeasonBtn.onclick = setupNewSeason;
-editTeamsBtn.onclick = editTeams;
-clearSeasonBtn.onclick = clearSeason;
-setWinnerBtn.onclick = setWinner;
+// Attach admin button handlers after the page is fully loaded
+window.addEventListener("load", () => {
+  const setupSeasonBtn  = document.getElementById("setupSeasonBtn");
+  const editTeamsBtn    = document.getElementById("editTeamsBtn");
+  const clearSeasonBtn  = document.getElementById("clearSeasonBtn");
+  const setWinnerBtn    = document.getElementById("setWinnerBtn");
+
+  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
+  if (editTeamsBtn)   editTeamsBtn.onclick   = editTeams;
+  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
+  if (setWinnerBtn)   setWinnerBtn.onclick   = setWinner;
+});
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
