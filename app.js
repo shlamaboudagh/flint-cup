@@ -315,29 +315,6 @@ function delPlayer(i) {
   renderPlayers(); renderStats();
 }
 
-// ✅ Schedules Button Event Listeners
-const addGameBtn = document.getElementById("addGameBtn");
-const schedulesContainer = document.getElementById("schedulesContainer");
-
-// Add Game button
-if (addGameBtn) {
-  addGameBtn.addEventListener("click", addGame);
-}
-
-// Edit/Delete buttons inside schedule list
-if (schedulesContainer) {
-  schedulesContainer.addEventListener("click", e => {
-    const btn = e.target;
-    if (btn.classList.contains("editGameBtn")) {
-      editGame(btn.dataset.team, btn.dataset.i);
-    }
-    if (btn.classList.contains("delGameBtn")) {
-      delGame(btn.dataset.team, btn.dataset.i);
-    }
-  });
-}
-
-
 // =============== STATS ===================
 function renderStats() {
   const statsDiv = document.querySelector(".stats-board");
@@ -437,6 +414,27 @@ function addGame() {
   alert(`✅ Game added for both ${teamA} and ${teamB}`);
 }
 
+// ✅ Schedules Button Event Listeners
+const addGameBtn = document.getElementById("addGameBtn");
+const schedulesContainer = document.getElementById("schedulesContainer");
+
+// Add Game button
+if (addGameBtn) {
+  addGameBtn.addEventListener("click", addGame);
+}
+
+// Edit/Delete buttons inside schedule list
+if (schedulesContainer) {
+  schedulesContainer.addEventListener("click", e => {
+    const btn = e.target;
+    if (btn.classList.contains("editGameBtn")) {
+      editGame(btn.dataset.team, btn.dataset.i);
+    }
+    if (btn.classList.contains("delGameBtn")) {
+      delGame(btn.dataset.team, btn.dataset.i);
+    }
+  });
+}
 
 // =============== ALL-TIME ===================
 function renderAllTime() {
@@ -496,6 +494,7 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
 
 
