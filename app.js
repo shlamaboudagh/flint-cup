@@ -308,12 +308,20 @@ function renderPlayoffs() {
     <p>${semiLine(semi2, "SF2")} ${isAdmin && (semi2.scoreA == null || semi2.scoreB == null) ? `<button id="semi2ScoreBtn">Enter SF2 Score</button>` : ""}</p>
 
     ${final ? `
-      <h3>Final</h3>
-      <p>${final.teamA} ${final.scoreA != null ? final.scoreA : ""}${final.scoreA != null ? "–" : ""}${final.scoreB != null ? final.scoreB : ""} ${final.teamB}
-      ${isAdmin && (final.scoreA == null || final.scoreB == null) ? `<button id="finalScoreBtn">Enter Final Score</button>` : ""}</p>
-      ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
-    ` : `
-      <div id="finalPlaceholder"></div>
+  <h3>Final</h3>
+  <p>
+    ${final.teamA}
+    ${final.scoreA !== null && final.scoreB !== null ? `${final.scoreA}-${final.scoreB}` : ""}
+    ${final.teamB}
+  </p>
+  ${isAdmin && (final.scoreA === null || final.scoreB === null)
+    ? `<button id="finalScoreBtn">Enter Final Score</button>`
+    : ""}
+  ${seasons[year].winner
+    ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>`
+    : ""}
+  <div id="finalPlaceholder"></div>
+` : ""}
   `;
 
   // Show “Set Final Winner” only when a final exists but you still want to set winner manually
@@ -742,6 +750,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
