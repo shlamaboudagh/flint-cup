@@ -297,8 +297,7 @@ function renderPlayoffs() {
   const { semi1, semi2, final } = data;
 
   const semiLine = (s, label) => `
-  ${label}: 
-  ${s.teamA} 
+  ${label}: ${s.teamA}
   ${s.scoreA !== null && s.scoreB !== null ? `${s.scoreA}-${s.scoreB}` : ""}
   ${s.teamB}
 `;
@@ -743,6 +742,7 @@ setWinnerBtn.onclick = setWinner;
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
