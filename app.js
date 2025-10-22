@@ -104,32 +104,8 @@ tabs.forEach(tab => {
 });
 
 // =============== OVERVIEW ===================
-function renderOverview() {
-  const year = currentYear();
-  seasonTitle.textContent = `Spring ${year} Season`;
-  const data = seasons[year];
-  overviewContent.innerHTML = "";
+<script type="module" src="app.js"></script>
 
-  if (!data) {
-    overviewContent.innerHTML = `<p>No Flint Cup data for ${year} yet.</p>`;
-    if (isAdmin) setupSeasonBtn.classList.remove("hidden");
-    else setupSeasonBtn.classList.add("hidden");
-    return;
-  }
-
-  setupSeasonBtn.classList.add("hidden");
-  if (isAdmin) {
-    editTeamsBtn.classList.remove("hidden");
-    setWinnerBtn.classList.remove("hidden");
-    clearSeasonBtn.classList.remove("hidden");
-  }
-
-  overviewContent.innerHTML = `
-    <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
-    <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
-    ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
-  `;
-}
 
 function setupNewSeason() {
   const year = currentYear();
@@ -392,3 +368,4 @@ document.getElementById("schedulesContainer").onclick = e => {
   if (btn.classList.contains("editGameBtn")) editGame(btn.dataset.team, btn.dataset.i);
   if (btn.classList.contains("delGameBtn")) delGame(btn.dataset.team, btn.dataset.i);
 };
+
