@@ -222,6 +222,13 @@ function updateScheduleResults(year, teamA, teamB, scoreA, scoreB) {
   });
 }
 
+// ✅ Match buttons (Add / Edit / Delete)
+document.getElementById("addMatchBtn").onclick = addMatch;
+document.querySelector(".match-list").onclick = e => {
+  if (e.target.classList.contains("editMatchBtn")) editMatch(e.target.dataset.i);
+  if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
+};
+
 // ================= STANDINGS =================
 function calcStandings() {
   const year = currentYear();
@@ -484,4 +491,5 @@ async function renderEverything(){
 }
 yearDropdown.onchange=renderEverything;
 window.addEventListener("load",renderEverything);
+
 
