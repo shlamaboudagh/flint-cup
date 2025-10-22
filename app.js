@@ -897,7 +897,8 @@ window.addEventListener("load", () => {
       if (e.target.classList.contains("delPlayerBtn")) delPlayer(e.target.dataset.i);
     };
   }
-});
+}); // 👈 this one closes the window.load function!
 
+// ✅ these two lines MUST be outside that block
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
