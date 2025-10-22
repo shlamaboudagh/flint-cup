@@ -116,14 +116,19 @@ function renderOverview() {
     else setupSeasonBtn.classList.add("hidden");
     return;
   }
-
+  
+// 🧩 Always show edit/winner/clear buttons when season exists and admin is logged in
+if (isAdmin) {
+  editTeamsBtn.classList.remove("hidden");
+  setWinnerBtn.classList.remove("hidden");
+  clearSeasonBtn.classList.remove("hidden");
+} else {
+  editTeamsBtn.classList.add("hidden");
+  setWinnerBtn.classList.add("hidden");
+  clearSeasonBtn.classList.add("hidden");
+}
   setupSeasonBtn.classList.add("hidden");
-  if (isAdmin) {
-    editTeamsBtn.classList.remove("hidden");
-    setWinnerBtn.classList.remove("hidden");
-    clearSeasonBtn.classList.remove("hidden");
-  }
-
+ 
   overviewContent.innerHTML = `
     <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
     <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
@@ -564,4 +569,5 @@ async function renderEverything() {
 }
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
