@@ -104,53 +104,6 @@ tabs.forEach(tab => {
 });
 
 // =============== OVERVIEW ===================
-function setupNewSeason() {
-  const year = currentYear();
-  if (seasons[year]) return alert(`${year} already exists.`);
-  const groupA = [], groupB = [];
-  const numA = parseInt(prompt("How many teams in Group A?"));
-  for (let i = 1; i <= numA; i++) groupA.push(prompt(`Team ${i} (Group A):`));
-  const numB = parseInt(prompt("How many teams in Group B?"));
-  for (let i = 1; i <= numB; i++) groupB.push(prompt(`Team ${i} (Group B):`));
-  seasons[year] = { groupA, groupB };
-  saveToFirebase();
-  alert(`✅ ${year} Season Created!`);
-  renderEverything();
-}
-
-function editTeams() {
-  const year = currentYear();
-  const data = seasons[year];
-  if (!data) return alert("No season yet.");
-  const newA = data.groupA.map((t, i) => prompt(`Team ${i + 1} (Group A):`, t));
-  const newB = data.groupB.map((t, i) => prompt(`Team ${i + 1} (Group B):`, t));
-  seasons[year] = { groupA: newA, groupB: newB };
-  saveToFirebase();
-  alert(`✅ ${year} Teams Updated!`);
-  renderEverything();
-}
-
-function clearSeason() {
-  const year = currentYear();
-  if (!confirm(`Delete ALL data for ${year}?`)) return;
-  delete seasons[year]; delete matches[year]; delete players[year]; delete schedules[year];
-  saveToFirebase();
-  alert(`🗑 ${year} Season Cleared.`);
-  renderEverything();
-}
-
-function setWinner() {
-  const year = currentYear();
-  const data = seasons[year];
-  if (!data) return alert("No season yet!");
-  const winner = prompt(`Enter winner for ${year}:`);
-  if (!winner) return;
-  seasons[year].winner = winner;
-  saveToFirebase();
-  alert(`🏆 ${winner} set as ${year} Champion!`);
-  renderEverything();
-}
-// =============== OVERVIEW ===================
 function renderOverview() {
   const year = currentYear();
   seasonTitle.textContent = `Spring ${year} Season`;
@@ -414,4 +367,5 @@ async function renderEverything() {
 
 yearDropdown.onchange = renderEverything;
 window.addEventListener("load", renderEverything);
+
 
