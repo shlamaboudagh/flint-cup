@@ -35,6 +35,7 @@ let matches = JSON.parse(localStorage.getItem("matches")) || {};
 let players = JSON.parse(localStorage.getItem("players")) || {};
 let schedules = JSON.parse(localStorage.getItem("schedules")) || {};
 
+// =============== YEAR DROPDOWN SETUP ===================
 const yearDropdown = document.getElementById("yearDropdown");
 const overviewContent = document.getElementById("overviewContent");
 const setupSeasonBtn = document.getElementById("setupSeasonBtn");
@@ -43,16 +44,22 @@ const clearSeasonBtn = document.getElementById("clearSeasonBtn");
 const setWinnerBtn = document.getElementById("setWinnerBtn");
 const seasonTitle = document.getElementById("seasonTitle");
 
-// Populate years
+// Populate years and remember last selected one
 const years = [2025, 2026, 2027];
+const savedYear = localStorage.getItem("selectedYear");
+
 years.forEach(y => {
   const opt = document.createElement("option");
   opt.value = y;
   opt.textContent = y;
-  if (y === 2025) opt.selected = true;
+  if (savedYear ? y == savedYear : y === 2025) opt.selected = true;
   yearDropdown.appendChild(opt);
 });
-function currentYear() { return yearDropdown.value; }
+
+// Helper: get current selected year
+function currentYear() {
+  return yearDropdown.value;
+}
 
 // =============== FIREBASE SYNC HELPERS ===================
 async function loadFromFirebase() {
@@ -799,7 +806,14 @@ async function renderEverything() {
   renderMatches();
   renderStandings();
 }
-yearDropdown.onchange = renderEverything;
+
+// Re-render everything when year is changed
+yearDropdown.addEventListener("change", () => {
+  localStorage.setItem("selectedYear", yearDropdown.value); // 👈 add .value
+  renderEverything();
+});
+
+// Initial render when the page first loads
 window.addEventListener("load", renderEverything);
 
 // Attach admin button handlers after the page is fully loaded
@@ -817,6 +831,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
