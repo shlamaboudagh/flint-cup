@@ -4,6 +4,64 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
+// ---------- FINAL FIX HOOKS ----------
+function safeBindPlayerButtons() {
+  const addBtn = document.getElementById("addPlayerBtn");
+  const list = document.querySelector(".player-list");
+  if (!addBtn || !list) return;
+
+  addBtn.onclick = () => {
+    const year = currentYear();
+    const name = prompt("Name:");
+    const team = prompt("Team:");
+    const goals = +prompt("Goals:") || 0;
+    const assists = +prompt("Assists:") || 0;
+    const yellow = +prompt("Yellow cards:") || 0;
+    const red = +prompt("Red cards:") || 0;
+    if (!name || !team) return alert("Name and team required.");
+
+    players[year] = players[year] || [];
+    players[year].push({ name, team, goals, assists, yellow, red });
+    saveToFirebase();
+    renderEverything();
+  };
+
+  list.onclick = e => {
+    const year = currentYear();
+    const btn = e.target;
+    if (btn.classList.contains("editPlayerBtn")) {
+      const i = btn.dataset.i;
+      const p = players[year][i];
+      p.name = prompt("Name:", p.name);
+      p.team = prompt("Team:", p.team);
+      p.goals = +prompt("Goals:", p.goals);
+      p.assists = +prompt("Assists:", p.assists);
+      p.yellow = +prompt("Yellow cards:", p.yellow);
+      p.red = +prompt("Red cards:", p.red);
+    } else if (btn.classList.contains("delPlayerBtn")) {
+      const i = btn.dataset.i;
+      if (confirm("Delete this player?")) players[year].splice(i, 1);
+    }
+    saveToFirebase();
+    renderEverything();
+  };
+}
+
+// 🔁 Full render refresh (ensures Overview + Standings always appear)
+async function renderEverything() {
+  await loadFromFirebase();
+  renderOverview();
+  renderMatches();
+  renderStandings();
+  renderSchedules();
+  renderPlayers();
+  renderStats();
+  renderAllTime();
+  safeBindPlayerButtons(); // ensure Add/Edit/Delete work
+}
+
+yearDropdown.onchange = renderEverything;
+window.addEventListener("load", renderEverything);
 window.addEventListener("DOMContentLoaded", () => {
   // 🔧 Firebase Config
   const firebaseConfig = {
@@ -346,4 +404,5 @@ window.addEventListener("DOMContentLoaded", () => {
   yearDropdown.onchange = renderEverything;
   renderEverything();
 });
+
 
