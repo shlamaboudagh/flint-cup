@@ -381,7 +381,6 @@ function renderStandings() {
 }
 
 // =============== PLAYOFFS ===================
-// =============== PLAYOFFS ===================
 function renderPlayoffs() {
   const year = currentYear();
   const data = seasons[year]?.playoffs;
@@ -960,6 +959,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
