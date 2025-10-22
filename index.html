@@ -62,21 +62,19 @@
 
   <main id="content">
     <!-- =============== OVERVIEW =============== -->
-    <section id="overview" class="tab-content active">
+   <section id="overview" class="tab-content active">
   <h2 id="seasonTitle">Spring 2025 Season</h2>
 
-  <!-- Admin Controls -->
-  <div id="adminSeasonControls" class="admin-only hidden">
-    <button id="setupSeasonBtn" class="admin-only hidden">⚙️ Setup New Season</button>
-    <button id="editTeamsBtn" class="admin-only hidden">✏️ Edit Season Teams</button>
-    <button id="setWinnerBtn" class="admin-only hidden">🏆 Set Winner</button>
-    <button id="clearSeasonBtn" class="admin-only hidden">🗑 Clear Season Data</button>
+  <!-- Admin-only buttons -->
+  <div class="admin-only hidden">
+    <button id="setupSeasonBtn">⚙️ Setup New Season</button>
+    <button id="editTeamsBtn">✏️ Edit Teams</button>
+    <button id="setWinnerBtn">🏆 Set Winner</button>
+    <button id="clearSeasonBtn">🗑 Clear Season</button>
   </div>
 
-  <!-- ✅ This must NOT have admin-only -->
-  <div id="overviewContent">
-    <p>Welcome to the Flint Cup! A 10-team tournament split into two groups...</p>
-  </div>
+  <!-- Public content -->
+  <div id="overviewContent"></div>
 </section>
 
 
@@ -84,24 +82,16 @@
     <section id="matches" class="tab-content">
   <h2>Matches</h2>
   <div class="match-list"></div>
-  <!-- ✅ Only the Add button should be admin-only -->
+
+  <!-- Admin-only -->
   <button id="addMatchBtn" class="admin-only hidden">+ Add Match</button>
 </section>
 
     <!-- =============== STANDINGS =============== -->
     <section id="standings" class="tab-content">
-      <h2>Standings</h2>
-      <div class="standings-container">
-        <div>
-          <h3>Group A</h3>
-          <table id="groupA-table" class="standings-table"></table>
-        </div>
-        <div>
-          <h3>Group B</h3>
-          <table id="groupB-table" class="standings-table"></table>
-        </div>
-      </div>
-    </section>
+  <h2>Standings</h2>
+  <div id="standingsContent"></div>
+</section>
 
     <!-- =============== STATS =============== -->
     <section id="stats" class="tab-content">
@@ -148,6 +138,7 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
+
 
 
 
