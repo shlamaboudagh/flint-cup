@@ -283,6 +283,58 @@ document.querySelector(".match-list").onclick = e => {
   if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
 };
 
+// =============== CALCULATE STANDINGS ===============
+function calcStandings() {
+  const year = currentYear();
+  const data = seasons[year];
+  const arr = matches[year] || [];
+
+  // If there’s no season yet, return empty arrays
+  if (!data) return { A: [], B: [] };
+
+  const allTeams = [...(data.groupA || []), ...(data.groupB || [])];
+  const stats = {};
+
+  // Initialize stats for each team
+  allTeams.forEach(team => {
+    stats[team] = { team, MP: 0, W: 0, L: 0, T: 0, GF: 0, GA: 0, P: 0 };
+  });
+
+  // Go through all matches in the selected season
+  arr.forEach(m => {
+    if (!stats[m.teamA] || !stats[m.teamB]) return;
+    if (m.scoreA == null || m.scoreB == null) return;
+
+    stats[m.teamA].MP++;
+    stats[m.teamB].MP++;
+    stats[m.teamA].GF += m.scoreA;
+    stats[m.teamA].GA += m.scoreB;
+    stats[m.teamB].GF += m.scoreB;
+    stats[m.teamB].GA += m.scoreA;
+
+    if (m.scoreA > m.scoreB) {
+      stats[m.teamA].W++;
+      stats[m.teamA].P += 3;
+      stats[m.teamB].L++;
+    } else if (m.scoreB > m.scoreA) {
+      stats[m.teamB].W++;
+      stats[m.teamB].P += 3;
+      stats[m.teamA].L++;
+    } else {
+      stats[m.teamA].T++;
+      stats[m.teamB].T++;
+      stats[m.teamA].P++;
+      stats[m.teamB].P++;
+    }
+  });
+
+  // Build ordered arrays for each group
+  const A = (data.groupA || []).map(t => stats[t] || { team: t, MP: 0, W: 0, L: 0, T: 0, GF: 0, GA: 0, P: 0 });
+  const B = (data.groupB || []).map(t => stats[t] || { team: t, MP: 0, W: 0, L: 0, T: 0, GF: 0, GA: 0, P: 0 });
+
+  return { A, B };
+}
+
 // =============== STANDINGS ===================
 function renderStandings() {
   const { A, B } = calcStandings();
@@ -831,6 +883,7 @@ window.addEventListener("load", () => {
 
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
