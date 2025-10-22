@@ -222,21 +222,44 @@ function updateScheduleResults(year, teamA, teamB, scoreA, scoreB) {
   });
 }
 
-// =============== STANDINGS ===================
+// ================= STANDINGS =================
 function calcStandings() {
   const year = currentYear();
   const s = seasons[year];
   if (!s) return { A: [], B: [] };
+
+  // Initialize table for every team
   const table = {};
-  [...s.groupA, ...s.groupB].forEach(t => table[t] = { MP:0, W:0, L:0, T:0, GF:0, GA:0, P:0 });
-  (matches[year] || []).forEach(m => {
-    const A = table[m.teamA], B = table[m.teamB];
-    if (!A || !B) return;
-    A.MP++; B.MP++; A.GF+=m.scoreA; B.GF+=m.scoreB; A.GA+=m.scoreB; B.GA+=m.scoreA;
-    if (m.scoreA>m.scoreB){A.W++;B.L++;} else if (m.scoreA<m.scoreB){B.W++;A.L++;} else {A.T++;B.T++;}
+  [...s.groupA, ...s.groupB].forEach(t => table[t] = {
+    MP: 0, W: 0, L: 0, T: 0, GF: 0, GA: 0, P: 0
   });
-  for (const t in table) table[t].P = 3*table[t].W + table[t].T;
-  return { A: s.groupA.map(t=>({team:t,...table[t]})), B: s.groupB.map(t=>({team:t,...table[t]})) };
+
+  // Process each match
+  (matches[year] || []).forEach(m => {
+    const A = table[m.teamA];
+    const B = table[m.teamB];
+    if (!A || !B) return;
+
+    A.MP++; B.MP++;
+    A.GF += m.scoreA; A.GA += m.scoreB;
+    B.GF += m.scoreB; B.GA += m.scoreA;
+
+    if (m.scoreA > m.scoreB) {
+      A.W++; B.L++;
+    } else if (m.scoreA < m.scoreB) {
+      B.W++; A.L++;
+    } else {
+      A.T++; B.T++;
+    }
+  });
+
+  // Compute points
+  Object.values(table).forEach(t => t.P = 3*t.W + t.T);
+
+  return {
+    A: s.groupA.map(t => ({ team: t, ...table[t] })),
+    B: s.groupB.map(t => ({ team: t, ...table[t] }))
+  };
 }
 
 function renderStandings() {
@@ -461,3 +484,4 @@ async function renderEverything(){
 }
 yearDropdown.onchange=renderEverything;
 window.addEventListener("load",renderEverything);
+
