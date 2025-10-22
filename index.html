@@ -51,7 +51,6 @@
       <button class="tab-button" data-tab="players">Players</button>
       <button class="tab-button" data-tab="schedules">Schedules</button>
       <button class="tab-button" data-tab="alltime">All-Time</button>
-      <button class="tab-button" data-tab="playoffs">Playoffs</button>
     </nav>
   </header>
 
@@ -66,12 +65,12 @@
       <h2 id="seasonTitle">Spring 2025 Season</h2>
 
       <!-- Admin Controls -->
-<div id="adminSeasonControls" class="admin-only hidden">
-  <button id="setupSeasonBtn" class="admin-only hidden">⚙️ Setup New Season</button>
-  <button id="editTeamsBtn" class="admin-only hidden">✏️ Edit Season Teams</button>
-  <button id="setWinnerBtn" class="admin-only hidden">🏆 Set Winner</button>
-  <button id="clearSeasonBtn" class="admin-only hidden">🗑 Clear Season Data</button>
-</div>
+      <div id="adminSeasonControls" class="admin-only hidden">
+        <button id="setupSeasonBtn" class="hidden">⚙️ Setup New Season</button>
+        <button id="editTeamsBtn" class="hidden">✏️ Edit Season Teams</button>
+        <button id="setWinnerBtn" class="hidden">🏆 Set Winner</button>
+        <button id="clearSeasonBtn" class="hidden">🗑 Clear Season Data</button>
+      </div>
 
       <div id="overviewContent">
         <p>
@@ -131,16 +130,6 @@
     </section>
   </main>
 
-  <!-- =============== PLAYOFFS =============== -->
-<section id="playoffs" class="tab-content">
-  <h2>🏆 Flint Cup Finals</h2>
-  <div id="playoffsContent">
-    <p>Playoffs will be generated automatically when the group stage ends.</p>
-  </div>
-  <button id="generatePlayoffsBtn" class="admin-only hidden">⚙️ Generate Playoffs</button>
-  <button id="setFinalWinnerBtn" class="admin-only hidden">🏅 Set Final Winner</button>
-</section>
-  
   <footer>
     <p>© 2025 Flint Cup • Designed with 💙 in Michigan</p>
 
@@ -148,8 +137,6 @@
   <script type="module" src="app.js"></script>
 </body>
 </html>
-
-
 
 
 
