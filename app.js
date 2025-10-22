@@ -139,28 +139,24 @@ function renderOverview() {
   const data = seasons[year];
   overviewContent.innerHTML = "";
 
-  // If no data for that year
+  // Always show message if no season exists
   if (!data) {
     overviewContent.innerHTML = `<p>No Flint Cup data for ${year} yet.</p>`;
-    // Only show setup button for admins
-    if (isAdmin) setupSeasonBtn.classList.remove("hidden");
-    else setupSeasonBtn.classList.add("hidden");
-    return;
+  } else {
+    // ✅ Show groups & winner to everyone
+    overviewContent.innerHTML = `
+      <p>🏅 <strong>Group A:</strong> ${data.groupA.join(", ")}</p>
+      <p>⚽ <strong>Group B:</strong> ${data.groupB.join(", ")}</p>
+      ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
+    `;
   }
 
-  // ✅ Always show the public content (teams + winner)
-  overviewContent.innerHTML = `
-    <p><strong>Group A:</strong> ${data.groupA.join(", ")}</p>
-    <p><strong>Group B:</strong> ${data.groupB.join(", ")}</p>
-    ${data.winner ? `<h3>🏆 Champion: ${data.winner}</h3>` : ""}
-  `;
-
-  // ✅ Only show admin buttons, not public content
+  // ✅ Only toggle buttons for admins
   if (isAdmin) {
     editTeamsBtn.classList.remove("hidden");
     setWinnerBtn.classList.remove("hidden");
     clearSeasonBtn.classList.remove("hidden");
-    setupSeasonBtn.classList.add("hidden");
+    setupSeasonBtn.classList.remove("hidden");
   } else {
     editTeamsBtn.classList.add("hidden");
     setWinnerBtn.classList.add("hidden");
@@ -971,8 +967,6 @@ window.addEventListener("load", async () => {
 
   console.log("✅ All buttons connected successfully.");
 });
-
-
 
 
 
