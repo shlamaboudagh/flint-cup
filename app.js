@@ -56,6 +56,11 @@ async function loadFromFirebase() {
       matches = data.matches || {};
       players = data.players || {};
       schedules = data.schedules || {};
+      localStorage.setItem("seasons", JSON.stringify(seasons));
+      localStorage.setItem("matches", JSON.stringify(matches));
+      localStorage.setItem("players", JSON.stringify(players));
+      localStorage.setItem("schedules", JSON.stringify(schedules));
+    }
   } catch (err) {
     console.error("⚠️ Firebase load failed:", err);
   }
@@ -579,4 +584,5 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
