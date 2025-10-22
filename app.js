@@ -381,6 +381,7 @@ function renderStandings() {
 }
 
 // =============== PLAYOFFS ===================
+// =============== PLAYOFFS ===================
 function renderPlayoffs() {
   const year = currentYear();
   const data = seasons[year]?.playoffs;
@@ -394,24 +395,43 @@ function renderPlayoffs() {
     return;
   }
 
-const year = currentYear();
-const data = seasons[year]?.playoffs || {};
-const { semi1, semi2, final } = data;
+  document.getElementById("generatePlayoffsBtn").classList.add("hidden");
 
-div.innerHTML = `
-  <h3>Semifinals</h3>
-  <p>${semi1.teamA} vs ${semi1.teamB} ${semi1.scoreA != null ? `– ${semi1.scoreA}-${semi1.scoreB}` : ""}</p>
-  <p>${semi2.teamA} vs ${semi2.teamB} ${semi2.scoreA != null ? `– ${semi2.scoreA}-${semi2.scoreB}` : ""}</p>
-  ${final ? `
-  <h3>Final</h3>
-  <p>${final.teamA} vs ${final.teamB} ${final.scoreA != null ? `– ${final.scoreA}-${final.scoreB}` : ""}</p>
-  ${seasons[year].winner ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>` : ""}
-  ` : ""}
-`;
+  const { semi1, semi2, final } = data;
 
-  if (isAdmin) {
-    document.getElementById("setFinalWinnerBtn").classList.remove("hidden");
-  }
+  const semiLine = (s, label) => `
+    ${label}: ${s.teamA}
+    ${s.scoreA !== null && s.scoreB !== null ? `${s.scoreA}-${s.scoreB}` : ""}
+    ${s.teamB}
+  `;
+
+  div.innerHTML = `
+    <h3>Semifinals</h3>
+    <p>${semiLine(semi1, "SF1")} ${isAdmin && (semi1.scoreA == null || semi1.scoreB == null) ? `<button id="semi1ScoreBtn">Enter SF1 Score</button>` : ""}</p>
+    <p>${semiLine(semi2, "SF2")} ${isAdmin && (semi2.scoreA == null || semi2.scoreB == null) ? `<button id="semi2ScoreBtn">Enter SF2 Score</button>` : ""}</p>
+
+    ${final ? `
+      <h3>Final</h3>
+      <p>
+        ${final.teamA}
+        ${final.scoreA !== null && final.scoreB !== null ? `${final.scoreA}-${final.scoreB}` : ""}
+        ${final.teamB}
+      </p>
+      ${isAdmin && (final.scoreA === null || final.scoreB === null)
+        ? `<button id="finalScoreBtn">Enter Final Score</button>`
+        : ""}
+      ${seasons[year].winner
+        ? `<h3>🏆 Champion: ${seasons[year].winner}</h3>`
+        : ""}
+      <div id="finalPlaceholder"></div>
+    ` : ""}
+  `;
+
+  // Show “Set Final Winner” only when a final exists
+  const setBtn = document.getElementById("setFinalWinnerBtn");
+  if (isAdmin && data.final) setBtn.classList.remove("hidden");
+  else setBtn.classList.add("hidden");
+}
 
 function generatePlayoffs() {
   const year = currentYear();
@@ -940,6 +960,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
