@@ -859,10 +859,54 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
   if (e.target.id === "finalScoreBtn") enterFinalScore();
 });
 
+// =============== ADMIN BUTTON ATTACHER ===================
+function attachAdminButtons() {
+  const setupSeasonBtn = document.getElementById("setupSeasonBtn");
+  const editTeamsBtn = document.getElementById("editTeamsBtn");
+  const clearSeasonBtn = document.getElementById("clearSeasonBtn");
+  const setWinnerBtn = document.getElementById("setWinnerBtn");
+
+  if (setupSeasonBtn) setupSeasonBtn.onclick = setupNewSeason;
+  if (editTeamsBtn) editTeamsBtn.onclick = editTeams;
+  if (clearSeasonBtn) clearSeasonBtn.onclick = clearSeason;
+  if (setWinnerBtn) setWinnerBtn.onclick = setWinner;
+
+  console.log("⚙️ Admin buttons attached.");
+}
+
+// =============== ADD PLAYER FUNCTION (UPDATED) ===================
+function addPlayer() {
+  const year = currentYear();
+
+  const name = prompt("Player Name:");
+  if (!name) return alert("⚠️ Player name required.");
+
+  const team = prompt("Team Name:");
+  if (!team) return alert("⚠️ Team name required.");
+
+  const goals = +prompt("Goals scored (enter 0 if none):") || 0;
+  const assists = +prompt("Assists (enter 0 if none):") || 0;
+  const yellow = +prompt("Yellow cards (enter 0 if none):") || 0;
+  const red = +prompt("Red cards (enter 0 if none):") || 0;
+
+  players[year] = players[year] || [];
+  players[year].push({ name, team, goals, assists, yellow, red });
+
+  localStorage.setItem("players", JSON.stringify(players));
+  saveToFirebase();
+
+  renderPlayers();
+  renderStats();
+  renderAllTime();
+
+  console.log(`✅ Added player: ${name} (${team}) — G:${goals} A:${assists} Y:${yellow} R:${red}`);
+}
+
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
-  await loadFromFirebase(); // Wait for Firebase data
+  await loadFromFirebase(); // wait for Firebase data
+
   renderOverview();
   renderMatches();
   renderStandings();
@@ -871,6 +915,7 @@ async function renderEverything() {
   renderSchedules();
   renderAllTime();
   renderPlayoffs();
+
   console.log("✅ All sections rendered.");
 }
 
@@ -889,7 +934,10 @@ window.addEventListener("load", async () => {
 
   // ===== PLAYER CONTROLS =====
   const addPlayerBtn = document.getElementById("addPlayerBtn");
-  if (addPlayerBtn) addPlayerBtn.onclick = addPlayer;
+  if (addPlayerBtn) {
+    addPlayerBtn.onclick = addPlayer;
+    console.log("🎯 Connected Add Player Button");
+  }
 
   const playerList = document.querySelector(".player-list");
   if (playerList) {
@@ -900,6 +948,9 @@ window.addEventListener("load", async () => {
   }
 
   // ===== MATCH CONTROLS =====
+  const addMatchBtn = document.getElementById("addMatchBtn");
+  if (addMatchBtn) addMatchBtn.onclick = addMatch;
+
   const matchList = document.querySelector(".match-list");
   if (matchList) {
     matchList.onclick = e => {
@@ -907,9 +958,6 @@ window.addEventListener("load", async () => {
       if (e.target.classList.contains("delMatchBtn")) delMatch(e.target.dataset.i);
     };
   }
-
-  const addMatchBtn = document.getElementById("addMatchBtn");
-  if (addMatchBtn) addMatchBtn.onclick = addMatch;
 
   // ===== PLAYOFF CONTROLS =====
   const genBtn = document.getElementById("generatePlayoffsBtn");
@@ -920,9 +968,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
 });
 
-// ✅ these two lines MUST be outside that block
-document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
-document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
 
 
 
