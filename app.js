@@ -489,11 +489,6 @@ document.getElementById("schedulesContainer").onclick = e => {
 const addGameBtn = document.getElementById("addGameBtn");
 const schedulesContainer = document.getElementById("schedulesContainer");
 
-// Add Game button
-if (addGameBtn) {
-  addGameBtn.addEventListener("click", addGame);
-}
-
 // Edit/Delete buttons inside schedule list
 if (schedulesContainer) {
   schedulesContainer.addEventListener("click", e => {
@@ -570,5 +565,6 @@ setupSeasonBtn.onclick = setupNewSeason;
 editTeamsBtn.onclick = editTeams;
 clearSeasonBtn.onclick = clearSeason;
 setWinnerBtn.onclick = setWinner;
+
 
 
