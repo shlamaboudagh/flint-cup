@@ -132,39 +132,39 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// =============== OVERVIEW ===================
+// ============= OVERVIEW =============
 function renderOverview() {
   const year = currentYear();
   seasonTitle.textContent = `Spring ${year} Season`;
   const data = seasons[year];
   overviewContent.innerHTML = "";
 
+  // Always show message if no season exists
   if (!data) {
     overviewContent.innerHTML = `<p>No Flint Cup data for ${year} yet.</p>`;
-    if (isAdmin) setupSeasonBtn.classList.remove("hidden");
-    else setupSeasonBtn.classList.add("hidden");
-    return;
+  } else {
+    // ✅ Show groups & winner to everyone
+    overviewContent.innerHTML = `
+      <p>🏅 <strong>Group A:</strong> ${data.groupA.join(", ")}</p>
+      <p>⚽ <strong>Group B:</strong> ${data.groupB.join(", ")}</p>
+      ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
+    `;
   }
-  
-// 🧩 Always show edit/winner/clear buttons when season exists and admin is logged in
-if (isAdmin) {
-  editTeamsBtn.classList.remove("hidden");
-  setWinnerBtn.classList.remove("hidden");
-  clearSeasonBtn.classList.remove("hidden");
-} else {
-  editTeamsBtn.classList.add("hidden");
-  setWinnerBtn.classList.add("hidden");
-  clearSeasonBtn.classList.add("hidden");
-}
-  setupSeasonBtn.classList.add("hidden");
- 
-  overviewContent.innerHTML = `
-    <h3>Group A</h3><p>${data.groupA.join(", ")}</p>
-    <h3>Group B</h3><p>${data.groupB.join(", ")}</p>
-    ${data.winner ? `<h3>🏆 Winner: ${data.winner}</h3>` : ""}
-  `;
 
-attachAdminButtons();
+  // ✅ Only toggle buttons for admins
+  if (isAdmin) {
+    editTeamsBtn.classList.remove("hidden");
+    setWinnerBtn.classList.remove("hidden");
+    clearSeasonBtn.classList.remove("hidden");
+    setupSeasonBtn.classList.remove("hidden");
+  } else {
+    editTeamsBtn.classList.add("hidden");
+    setWinnerBtn.classList.add("hidden");
+    clearSeasonBtn.classList.add("hidden");
+    setupSeasonBtn.classList.add("hidden");
+  }
+
+  attachAdminButtons();
 }
 
 function setupNewSeason() {
@@ -902,3 +902,4 @@ window.addEventListener("load", () => {
 // ✅ these two lines MUST be outside that block
 document.getElementById("generatePlayoffsBtn").onclick = generatePlayoffs;
 document.getElementById("setFinalWinnerBtn").onclick = setFinalWinner;
+
