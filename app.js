@@ -2,7 +2,7 @@
 
 // ✅ Use ES module imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // 🔧 Firebase Config
 const firebaseConfig = {
@@ -62,25 +62,21 @@ function currentYear() {
 }
 
 // =============== FIREBASE SYNC HELPERS ===================
-async function loadFromFirebase() {
-  try {
-    const snapshot = await get(ref(db, "flintcup"));
+function loadFromFirebase() {
+  const dbRef = ref(db, "flintcup");
+
+  onValue(dbRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      
-      if (data.seasons) seasons = data.seasons;
-      if (data.matches) matches = data.matches;
-      if (data.players) players = data.players;
-      if (data.schedules) schedules = data.schedules;
-    }
-  } catch (err) {
-    console.error("⚠️ Firebase load failed:", err);
-  }
-}
 
-function saveToFirebase() {
-  set(ref(db, "flintcup"), { seasons, matches, players, schedules })
-    .catch(err => console.error("⚠️ Firebase save failed:", err));
+      seasons = data.seasons || {};
+      matches = data.matches || {};
+      players = data.players || {};
+      schedules = data.schedules || {};
+
+      renderEverything();
+    }
+  });
 }
 
 // =============== ADMIN LOGIN ===================
@@ -843,7 +839,7 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
-  await loadFromFirebase(); // wait for Firebase data
+ loadFromFirebase(); // wait for Firebase data
 
   renderOverview();
   renderMatches();
@@ -906,6 +902,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
