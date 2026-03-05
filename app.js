@@ -2,7 +2,7 @@
 
 // ✅ Use ES module imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, get, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 // 🔧 Firebase Config
 const firebaseConfig = {
@@ -77,6 +77,15 @@ function loadFromFirebase() {
       renderEverything();
     }
   });
+}
+
+function saveToFirebase() {
+  update(ref(db, "flintcup"), {
+    seasons: seasons,
+    matches: matches,
+    players: players,
+    schedules: schedules
+  }).catch(err => console.error("⚠️ Firebase save failed:", err));
 }
 
 // =============== ADMIN LOGIN ===================
@@ -902,6 +911,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
