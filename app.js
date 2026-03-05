@@ -30,10 +30,10 @@ if (isAdmin) {
   });
 }
 
-let seasons = JSON.parse(localStorage.getItem("seasons")) || {};
-let matches = JSON.parse(localStorage.getItem("matches")) || {};
-let players = JSON.parse(localStorage.getItem("players")) || {};
-let schedules = JSON.parse(localStorage.getItem("schedules")) || {};
+let seasons = {};
+let matches = {};
+let players = {};
+let schedules = {};
 
 // =============== YEAR DROPDOWN SETUP ===================
 const yearDropdown = document.getElementById("yearDropdown");
@@ -72,11 +72,6 @@ async function loadFromFirebase() {
       if (data.matches) matches = data.matches;
       if (data.players) players = data.players;
       if (data.schedules) schedules = data.schedules;
-      
-      localStorage.setItem("seasons", JSON.stringify(seasons));
-      localStorage.setItem("matches", JSON.stringify(matches));
-      localStorage.setItem("players", JSON.stringify(players));
-      localStorage.setItem("schedules", JSON.stringify(schedules));
     }
   } catch (err) {
     console.error("⚠️ Firebase load failed:", err);
@@ -187,7 +182,6 @@ function setupNewSeason() {
   const numB = parseInt(prompt("How many teams in Group B?"));
   for (let i = 1; i <= numB; i++) groupB.push(prompt(`Team ${i} (Group B):`));
   seasons[year] = { groupA, groupB };
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`✅ ${year} Season Created!`);
   renderEverything();
@@ -200,7 +194,6 @@ function editTeams() {
   const newA = data.groupA.map((t, i) => prompt(`Team ${i + 1} (Group A):`, t));
   const newB = data.groupB.map((t, i) => prompt(`Team ${i + 1} (Group B):`, t));
   seasons[year] = { groupA: newA, groupB: newB };
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`✅ ${year} Teams Updated!`);
   renderEverything();
@@ -210,10 +203,6 @@ function clearSeason() {
   const year = currentYear();
   if (!confirm(`Delete ALL data for ${year}?`)) return;
   delete seasons[year]; delete matches[year]; delete players[year]; delete schedules[year];
-  localStorage.setItem("seasons", JSON.stringify(seasons));
-  localStorage.setItem("matches", JSON.stringify(matches));
-  localStorage.setItem("players", JSON.stringify(players));
-  localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   alert(`🗑 ${year} Season Cleared.`);
   renderEverything();
@@ -226,7 +215,6 @@ function setWinner() {
   const winner = prompt(`Enter winner for ${year}:`);
   if (!winner) return;
   seasons[year].winner = winner;
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`🏆 ${winner} set as ${year} Champion!`);
 }
@@ -262,7 +250,6 @@ function addMatch() {
   if (!teamA || !teamB) return;
   matches[year] = matches[year] || [];
   matches[year].push({ teamA, teamB, scoreA, scoreB });
-  localStorage.setItem("matches", JSON.stringify(matches));
   saveToFirebase();
   renderMatches();
   renderStandings();
@@ -275,7 +262,6 @@ function editMatch(i) {
   const scoreA = +prompt(`${m.teamA} score:`, m.scoreA);
   const scoreB = +prompt(`${m.teamB} score:`, m.scoreB);
   matches[year][i] = { ...m, scoreA, scoreB };
-  localStorage.setItem("matches", JSON.stringify(matches));
   saveToFirebase();
   renderMatches(); renderStandings();
 }
@@ -284,7 +270,6 @@ function delMatch(i) {
   const year = currentYear();
   if (!confirm("Delete match?")) return;
   matches[year].splice(i, 1);
-  localStorage.setItem("matches", JSON.stringify(matches));
   saveToFirebase();
   renderMatches(); renderStandings();
 }
@@ -448,7 +433,6 @@ function generatePlayoffs() {
   const semi2 = { teamA: B[0].team, teamB: A[1].team, scoreA: null, scoreB: null };
 
   seasons[year].playoffs = { semi1, semi2 };
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert("✅ Playoffs generated!");
   renderPlayoffs();
@@ -462,7 +446,6 @@ function setFinalWinner() {
   const winner = prompt("Enter final winner:");
   if (!winner) return;
   seasons[year].winner = winner;
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   alert(`🏆 ${winner} is the ${year} Champion!`);
   renderPlayoffs();
@@ -498,7 +481,6 @@ function addPlayer() {
   players[year] = players[year] || [];
   players[year].push({ name, team, goals, assists, yellow, red });
 
-  localStorage.setItem("players", JSON.stringify(players));
   saveToFirebase();
 
   renderPlayers();
@@ -521,7 +503,6 @@ function editPlayer(i) {
   p.assists = +prompt("Assists:", p.assists);
   p.yellow = +prompt("Yellows:", p.yellow);
   p.red = +prompt("Reds:", p.red);
-  localStorage.setItem("players", JSON.stringify(players));
   saveToFirebase();
   renderPlayers(); renderStats();
 }
@@ -530,7 +511,6 @@ function delPlayer(i) {
   const year = currentYear();
   if (!confirm("Delete player?")) return;
   players[year].splice(i,1);
-  localStorage.setItem("players", JSON.stringify(players));
   saveToFirebase();
   renderPlayers(); renderStats();
 }
@@ -662,7 +642,6 @@ function editGame(team, i) {
     }
   }
 
-  localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
   alert(`✅ Updated game between ${team} and ${newOpponent}`);
@@ -696,7 +675,6 @@ function delGame(team, i) {
   }
 
   // 🧩 Save updates
-  localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   renderSchedules();
   alert(`🗑 Deleted game between ${team} and ${opponent} for both teams`);
@@ -722,7 +700,6 @@ function addGame() {
   schedules[year][teamB] = schedules[year][teamB] || [];
   schedules[year][teamB].push({ opponent: teamA, date, time, homeaway: "Away" });
 
-  localStorage.setItem("schedules", JSON.stringify(schedules));
   saveToFirebase();
   
   // Sort schedules by date for each team
@@ -733,7 +710,6 @@ for (const t in schedules[year]) {
     return da - db;
   });
 }
-localStorage.setItem("schedules", JSON.stringify(schedules));
 saveToFirebase();
 renderSchedules();
 alert(`✅ Game added for both ${teamA} and ${teamB}, sorted by date`);
@@ -828,7 +804,6 @@ function enterSemiScore(which) {
     alert(`✅ Final created: ${w1} vs ${w2}`);
   }
 
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   renderPlayoffs();
 }
@@ -853,7 +828,6 @@ function enterFinalScore() {
 
   if (winner) seasons[year].winner = winner;
 
-  localStorage.setItem("seasons", JSON.stringify(seasons));
   saveToFirebase();
   renderPlayoffs();
 }
@@ -886,7 +860,6 @@ async function renderEverything() {
 // 🌀 Re-render when year changes
 yearDropdown.addEventListener("change", () => {
   const y = yearDropdown.value;
-  localStorage.setItem("selectedYear", y);
 
   // 🧹 Initialize if not yet made
   if (!seasons[y]) seasons[y] = {};
@@ -894,10 +867,6 @@ yearDropdown.addEventListener("change", () => {
   if (!players[y]) players[y] = [];
   if (!schedules[y]) schedules[y] = {};
 
-  localStorage.setItem("seasons", JSON.stringify(seasons));
-  localStorage.setItem("matches", JSON.stringify(matches));
-  localStorage.setItem("players", JSON.stringify(players));
-  localStorage.setItem("schedules", JSON.stringify(schedules));
 
   renderEverything();
 });
@@ -946,6 +915,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
