@@ -859,15 +859,6 @@ async function renderEverything() {
 
 // 🌀 Re-render when year changes
 yearDropdown.addEventListener("change", () => {
-  const y = yearDropdown.value;
-
-  // 🧹 Initialize if not yet made
-  if (!seasons[y]) seasons[y] = {};
-  if (!matches[y]) matches[y] = [];
-  if (!players[y]) players[y] = [];
-  if (!schedules[y]) schedules[y] = {};
-
-
   renderEverything();
 });
 
@@ -915,6 +906,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
