@@ -45,14 +45,14 @@ const setWinnerBtn = document.getElementById("setWinnerBtn");
 const seasonTitle = document.getElementById("seasonTitle");
 
 // Populate years and remember last selected one
-const years = [2025, 2026, 2027];
+const years = [2026, 2027, 2028];
 const savedYear = localStorage.getItem("selectedYear");
 
 years.forEach(y => {
   const opt = document.createElement("option");
   opt.value = y;
   opt.textContent = y;
-  if (savedYear ? y == savedYear : y === 2025) opt.selected = true;
+  if (savedYear ? y == savedYear : y === 2026) opt.selected = true;
   yearDropdown.appendChild(opt);
 });
 
@@ -906,6 +906,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
