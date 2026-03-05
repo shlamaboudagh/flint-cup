@@ -848,7 +848,6 @@ document.getElementById("playoffsContent")?.addEventListener("click", (e) => {
 // =============== INITIAL RENDER ===================
 async function renderEverything() {
   console.log("🔄 Rendering everything...");
- loadFromFirebase(); // wait for Firebase data
 
   renderOverview();
   renderMatches();
@@ -869,6 +868,7 @@ yearDropdown.addEventListener("change", () => {
 
 // 🧠 Attach ALL button handlers once page loads
 window.addEventListener("load", async () => {
+  loadFromFirebase();
   await renderEverything();
   renderMatches();
 
@@ -911,6 +911,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
