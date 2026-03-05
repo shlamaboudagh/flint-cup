@@ -67,10 +67,12 @@ async function loadFromFirebase() {
     const snapshot = await get(ref(db, "flintcup"));
     if (snapshot.exists()) {
       const data = snapshot.val();
-      seasons = data.seasons || {};
-      matches = data.matches || {};
-      players = data.players || {};
-      schedules = data.schedules || {};
+      
+      if (data.seasons) seasons = data.seasons;
+      if (data.matches) matches = data.matches;
+      if (data.players) players = data.players;
+      if (data.schedules) schedules = data.schedules;
+      
       localStorage.setItem("seasons", JSON.stringify(seasons));
       localStorage.setItem("matches", JSON.stringify(matches));
       localStorage.setItem("players", JSON.stringify(players));
@@ -944,6 +946,7 @@ window.addEventListener("load", async () => {
   console.log("✅ All buttons connected successfully.");
   renderEverything();
 });
+
 
 
 
